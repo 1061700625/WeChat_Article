@@ -165,8 +165,6 @@ if __name__ == '__main__':
     print(">> 电脑已装Firefox、Chrome、Opera、Edge等浏览器")
     print(">> 下载selenium驱动放入python安装目录，将目录添加至环境变量(https://www.seleniumhq.org/download/)")
     print(">> 申请一个微信公众号(https://mp.weixin.qq.com)")
-    print("* 联系方式： *")
-    print(">> 1061700625@qq.com")
     print("*" * 100)
     print("\r")
 
