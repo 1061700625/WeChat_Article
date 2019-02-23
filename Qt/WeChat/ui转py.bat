@@ -1,0 +1,1 @@
+pyuic5 -o WeChat.py mainwindow.ui
