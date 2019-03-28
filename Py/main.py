@@ -17,7 +17,7 @@ from math import ceil
 import threading
 import inspect
 import ctypes
-
+import random
 
 
 
@@ -122,7 +122,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         img_buf = []
 
         Total_buf = []
-        url = r'https://mp.weixin.qq.com/cgi-bin/appmsg?token={0}&lang=zh_CN&f=json&ajax=1&random=0.977467295649225&action=list_ex&begin=0&count=5&query=&fakeid={1}&type=9'.format(token, fakeid)
+        url = r'https://mp.weixin.qq.com/cgi-bin/appmsg?token={0}&lang=zh_CN&f=json&ajax=1&random={1}&action=list_ex&begin=0&count=5&query=&fakeid={2}&type=9'.format(token,  random.uniform(0, 1), fakeid)
         html_json = self.sess.get(url, headers=self.headers).json()
         try:
             Total_Page = ceil(int(html_json['app_msg_cnt']) / 5)
@@ -134,9 +134,10 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             self.label_notes.setText("第[%d/%d]页" % (i + 1, Total_Page))
             print("第[%d/%d]页" % (i + 1, Total_Page))
             begin = i * 5
-            url = r'https://mp.weixin.qq.com/cgi-bin/appmsg?token={0}&lang=zh_CN&f=json&ajax=1&random=0.977467295649225&action=list_ex&begin={1}&count=5&query=&fakeid={2}&type=9'.format(
-                token, begin, fakeid)
+            url = r'https://mp.weixin.qq.com/cgi-bin/appmsg?token={0}&lang=zh_CN&f=json&ajax=1&random={1}&action=list_ex&begin={2}&count=5&query=&fakeid={3}&type=9'.format(
+                token,  random.uniform(0, 1), begin, fakeid)
             html_json = self.sess.get(url, headers=self.headers).json()
+            # print(url)
             # print(html_json)
             app_msg_list = html_json['app_msg_list']
             if (str(app_msg_list) == '[]'):
@@ -155,7 +156,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                     table_count = self.tableWidget_result.rowCount()
                     if(table_index >= table_count):
                         self.tableWidget_result.insertRow(table_count)
-                    print("table_index：", table_index)
+                    # print("table_index：", table_index)
                     self.tableWidget_result.setItem(table_index, 0, QtWidgets.QTableWidgetItem(title_buf[j]))  # i*20+j
                     self.tableWidget_result.setItem(table_index, 1, QtWidgets.QTableWidgetItem(link_buf[j]))  # i*20+j
                     table_index = table_index + 1
@@ -164,9 +165,9 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                         fp.write('*' * 60 + '\nTitle: ' + title_buf[j] + '\nLink: ' + link_buf[j] + '\nImg: ' + img_buf[j] + '\r\n')
                         fp.close()
                         self.label_notes.setText(">> 第%d条写入完成：%s" % (j + 1, title_buf[j]))
+                        print(">> 第%d条写入完成：%s" % (j + 1, title_buf[j]))
                 except Exception as e:
-                    print(">> 本页抓取结束")
-                    print(e)
+                    print(">> 本页抓取结束 - ", e)
                     break
             self.label_notes.setText(">> 一页抓取结束，开始下载")
             print(">> 一页抓取结束，开始下载")
@@ -205,12 +206,15 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                         fp.write(line_content + "\n")  # 写入本地文件
                         fp.close()
             self.label_notes.setText(">> 保存文档 - 完毕!")
+            print(">> 标题：", each_title)
+            print(">> 保存文档 - 完毕!")
             for i in range(len(img_urls)):
                 pic_down = requests.get(img_urls[i]["data-src"])
                 with open(str(i) + r'.jpeg', 'ab+') as fp:
                     fp.write(pic_down.content)
                     fp.close()
             self.label_notes.setText(">> 保存图片%d张 - 完毕!\r\n" % len(img_urls))
+            print(">> 保存图片%d张 - 完毕!\r\n" % len(img_urls))
 
 ################################强制关闭线程##################################################
     def _async_raise(self, tid, exctype):
@@ -242,24 +246,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
