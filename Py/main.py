@@ -210,11 +210,18 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             print(">> 保存文档 - 完毕!")
             for i in range(len(img_urls)):
                 pic_down = requests.get(img_urls[i]["data-src"])
+                img_urls[i]["src"] = str(i)+r'.jpeg'  # 更改图片地址为本地
                 with open(str(i) + r'.jpeg', 'ab+') as fp:
                     fp.write(pic_down.content)
                     fp.close()
             self.label_notes.setText(">> 保存图片%d张 - 完毕!\r\n" % len(img_urls))
             print(">> 保存图片%d张 - 完毕!\r\n" % len(img_urls))
+
+            with open(each_title+r'.html', 'w', encoding='utf-8') as f:  # 保存html文件
+                f.write(str(soup))
+                f.close()
+                print(">> 保存html - 完毕!\r\n")
+
 
 ################################强制关闭线程##################################################
     def _async_raise(self, tid, exctype):
@@ -246,4 +253,23 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
