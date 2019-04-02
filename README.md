@@ -15,7 +15,11 @@
 2、下载selenium驱动放入python安装目录，将目录添加至环境变量(https://www.seleniumhq.org/download/)   
 3、申请一个微信公众号(https://mp.weixin.qq.com)   
 ****************************************************************************************************    
-
+* 功能：
+1. 下载文章文字内容到txt
+2. 下载文章图片
+3. 保存HTML文件，并将图片链接指向本地
+**************************************************************************************************** 
 建议主程序放到./Py文件夹里运行。若运行仍报错，可：  
 1. 可以把这个exe文件拷贝到qt的安装目录下的bin目录下运行即可；  
 2. 把bin目录下的Qt5Core.dll, Qt5Gui.dll, Qt5Widgets.dll以及C:\Qt\Qt5.8.0\5.8\msvc2015\plugins\platforms拷贝到exe同级目录。platforms文件夹下有qminimal.dll, qoffscreen.dll, qwindows.dll.  再次运行exe或重新用pyinstaller生成exe。
