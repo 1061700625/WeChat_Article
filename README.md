@@ -11,7 +11,7 @@
 * 程序原理:     
 通过selenium登录获取token和cookie，再自动爬取和下载   
 * 使用前提：   
-1、电脑已装Firefox、Chrome、Opera、Edge等浏览器   
+1、电脑已装Firefox、Chrome、Opera、Edge等浏览器（默认使用火狐驱动）   
 2、下载selenium驱动放入python安装目录，将目录添加至环境变量(https://www.seleniumhq.org/download/)   
 3、申请一个微信公众号(https://mp.weixin.qq.com)   
 ****************************************************************************************************    
