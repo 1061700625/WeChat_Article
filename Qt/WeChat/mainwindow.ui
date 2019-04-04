@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>620</width>
-    <height>520</height>
+    <height>545</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -157,6 +157,9 @@
           <pointsize>10</pointsize>
          </font>
         </property>
+        <property name="whatsThis">
+         <string>调试窗口</string>
+        </property>
         <property name="autoFillBackground">
          <bool>false</bool>
         </property>
@@ -172,15 +175,12 @@
         <property name="alignment">
          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
         </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
        </widget>
       </item>
      </layout>
     </item>
     <item row="1" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,0,0,0,0">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0">
       <property name="sizeConstraint">
        <enum>QLayout::SetDefaultConstraint</enum>
       </property>
@@ -197,7 +197,7 @@
          <widget class="QLineEdit" name="LineEdit_target">
           <property name="minimumSize">
            <size>
-            <width>200</width>
+            <width>350</width>
             <height>25</height>
            </size>
           </property>
@@ -274,33 +274,66 @@
            </size>
           </property>
           <property name="placeholderText">
-           <string>为空则默认为10s,一页约10条，越短越快被限制</string>
+           <string>为空则默认为5s,一页约10条，越短越快被限制</string>
           </property>
          </widget>
         </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="Label_time">
+          <property name="text">
+           <string>时间范围(年)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QLineEdit" name="lineEdit_timeStart">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="placeholderText">
+             <string>1999</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_timeEnd">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="placeholderText">
+             <string>2019</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="checkBox">
-        <property name="cursor">
-         <cursorShape>PointingHandCursor</cursorShape>
-        </property>
-        <property name="statusTip">
-         <string/>
-        </property>
-        <property name="whatsThis">
-         <string>记住密码</string>
-        </property>
-        <property name="autoFillBackground">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
       </item>
       <item>
        <spacer name="horizontalSpacer_2">
@@ -336,6 +369,28 @@
             <width>24</width>
             <height>24</height>
            </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBox">
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="statusTip">
+           <string/>
+          </property>
+          <property name="whatsThis">
+           <string>记住密码</string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>记住密码</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -385,7 +440,7 @@
 * 程序原理:
 &gt;&gt; 通过selenium登录获取token和cookie，再自动爬取和下载
 * 使用前提： *
-&gt;&gt; 电脑已装Firefox、Chrome、Opera、Edge等浏览器
+&gt;&gt; 电脑已装Firefox、Chrome、Opera、Edge等浏览器(默认Firefox驱动)
 &gt;&gt; 下载selenium驱动放入python安装目录，将目录添加至环境变量(https://www.seleniumhq.org/download/)
 &gt;&gt; 申请一个微信公众号(https://mp.weixin.qq.com)
                          Copyright © SXF  本软件禁止一切形式的商业活动
