@@ -83,12 +83,15 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             print(e)
 
     def Process(self):
-        query_name = self.LineEdit_target.text()                      # 公众号的英文名称
-        username = self.LineEdit_user.text()                          # 自己公众号的账号
-        pwd = self.LineEdit_pwd.text()                                # 自己公众号的密码
-        self.time_gap = int(self.LineEdit_timegap.text()) or 10       # 每页爬取等待时间")
-        self.timeStart = int(self.lineEdit_timeStart.text()) or 2019  # 起始时间
-        self.timeEnd = int(self.lineEdit_timeEnd.text()) or 1999      # 结束时间
+        query_name = self.LineEdit_target.text()                 # 公众号的英文名称
+        username = self.LineEdit_user.text()                     # 自己公众号的账号
+        pwd = self.LineEdit_pwd.text()                           # 自己公众号的密码
+        self.time_gap = self.LineEdit_timegap.text() or 10       # 每页爬取等待时间
+        self.time_gap = int(self.time_gap)
+        self.timeStart = self.lineEdit_timeStart.text() or 2019  # 起始时间
+        self.timeStart = int(self.timeStart)
+        self.timeEnd = self.lineEdit_timeEnd.text() or 1999      # 结束时间
+        self.timeEnd = int(self.timeEnd)
 
         if self.checkBox.isChecked() == True and pwd != "":
             dict = {'target': query_name, 'user': username, 'pwd': pwd, 'timegap': self.time_gap}
@@ -133,6 +136,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             self.Label_Debug("无cookie.json或失效")
 
         self.Label_Debug("正在打开浏览器,请稍等")
+        print("正在打开浏览器,请稍等")
         browser = webdriver.Firefox()
         # browser = webdriver.Chrome()
         browser.maximize_window()
@@ -379,3 +383,21 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
