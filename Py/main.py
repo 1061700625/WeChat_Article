@@ -35,6 +35,8 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         self.thread_list = []
         self.label_debug_string = ""
         self.label_debug_cnt = 0
+        self.total_articles = 0  # 当前文章数
+
 
     def Label_Debug(self, string):
         if self.label_debug_cnt == 6:
@@ -51,6 +53,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             with open(os.getcwd()+r'/login.json', 'r', encoding='utf-8') as p:
                 login_dict = json.load(p)
                 print("登陆文件读取成功")
+                self.Label_Debug("登陆文件读取成功")
                 self.LineEdit_target.setText(login_dict['target'])  # 公众号的英文名称
                 self.LineEdit_user.setText(login_dict['user'])  # 自己公众号的账号
                 self.LineEdit_pwd.setText(login_dict['pwd'])  # 自己公众号的密码
@@ -61,6 +64,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             pass
 
     def Start_Run(self):
+        self.total_articles = 0
         Process_thread = threading.Thread(target=self.Process, daemon=True)
         Process_thread.start()
         self.thread_list.append(Process_thread)
@@ -69,6 +73,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         try:
             self.stop_thread(self.thread_list.pop())
             self.Label_Debug("终止成功!")
+            print("终止成功!")
         except Exception as e:
             print(e)
 
@@ -172,10 +177,21 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             begin = i * 5
             url = r'https://mp.weixin.qq.com/cgi-bin/appmsg?token={0}&lang=zh_CN&f=json&ajax=1&random={1}&action=list_ex&begin={2}&count=5&query=&fakeid={3}&type=9'.format(
                 token,  random.uniform(0, 1), begin, fakeid)
-            html_json = self.sess.get(url, headers=self.headers).json()
-            # print(url)
-            # print(html_json)
-            app_msg_list = html_json['app_msg_list']
+            while True:
+                try:
+                    html_json = self.sess.get(url, headers=self.headers).json()
+                    break
+                except Exception as e:
+                    print("连接出错，稍等2s", e)
+                    self.Label_Debug("连接出错，稍等2s" + str(e))
+                    sleep(2)
+                    continue
+            try:
+                app_msg_list = html_json['app_msg_list']
+            except Exception as e:
+                self.Label_Debug("！！！操作太频繁，请稍后再试！！！")
+                print("操作太频繁，请稍后再试", e)
+
             if (str(app_msg_list) == '[]'):
                 break
             for j in range(20):
@@ -196,8 +212,9 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                     self.tableWidget_result.setItem(table_index, 1, QtWidgets.QTableWidgetItem(link_buf[j]))  # i*20+j
                     table_index = table_index + 1
 
+                    self.total_articles += 1
                     with open(self.rootpath + "/spider.txt", 'a+') as fp:
-                        fp.write('*' * 60 + '\n【%d】\n  Title: '%j + title_buf[j] + '\n  Link: ' + link_buf[j] + '\n  Img: ' + img_buf[j] + '\r\n\r\n')
+                        fp.write('*' * 60 + '\n【%d】\n  Title: ' % self.total_articles + title_buf[j] + '\n  Link: ' + link_buf[j] + '\n  Img: ' + img_buf[j] + '\r\n\r\n')
                         fp.close()
                         self.Label_Debug(">> 第%d条写入完成：%s" % (j + 1, title_buf[j]))
                         print(">> 第%d条写入完成：%s" % (j + 1, title_buf[j]))
@@ -209,10 +226,11 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             self.get_content(title_buf, link_buf)
             title_buf.clear()  # 清除缓存
             link_buf.clear()  # 清除缓存
-            self.Label_Debug(">> 休息 %d s" % self.time_gap)
-            print(">> 休息 %d s" % self.time_gap)
-            sleep(self.time_gap)
+            # self.Label_Debug(">> 休息 %d s" % self.time_gap)
+            # print(">> 休息 %d s" % self.time_gap)
+            # sleep(self.time_gap)
         self.Label_Debug(">> 抓取结束")
+        print(">> 抓取结束")
 
     def get_content(self, title_buf, link_buf):  # 获取地址对应的文章内容
         each_title = ""  # 初始化
@@ -260,7 +278,14 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                 print(">> 保存文档 - 完毕!")
             if No_img != 1:
                 for i in range(len(img_urls)):
-                    pic_down = requests.get(img_urls[i]["data-src"])
+                    while True:
+                        try:
+                            pic_down = self.sess.get(img_urls[i]["data-src"], timeout=(30, 60))  # 连接超时30s，读取超时60s，防止卡死
+                            break
+                        except Exception as e:
+                            print("下载超时 ->", e)
+                            self.Label_Debug("下载超时,重试 ->" + str(e))
+                            continue
                     img_urls[i]["src"] = str(i)+r'.jpeg'  # 更改图片地址为本地
                     with open(str(i) + r'.jpeg', 'ab+') as fp:
                         fp.write(pic_down.content)
@@ -273,6 +298,9 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                 f.close()
                 self.Label_Debug(">> 保存html - 完毕!")
                 print(">> 保存html - 完毕!")
+            self.Label_Debug(">> 休息 %d s" % self.time_gap)
+            print(">> 休息 %d s" % self.time_gap)
+            sleep(self.time_gap)
 
 
 ################################强制关闭线程##################################################
