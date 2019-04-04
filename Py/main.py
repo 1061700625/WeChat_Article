@@ -4,7 +4,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import os
 import re
-from time import sleep
+from time import sleep, localtime, time, strftime
 
 from PyQt5.QtWidgets import QApplication
 from bs4 import BeautifulSoup
@@ -31,7 +31,10 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:65.0) Gecko/20100101 Firefox/65.0',
         }
         self.rootpath = os.getcwd() + r"/spider/"  # 全局变量，存放路径
-        self.time_gap = 10  # 全局变量，每页爬取等待时间
+        self.time_gap = 5       # 全局变量，每页爬取等待时间
+        self.timeStart = 2019   # 全局变量，起始时间
+        self.timeEnd = 1999     # 全局变量，结束时间
+        self.year_now = localtime(time()).tm_year  # 当前年份，用于比对时间
         self.thread_list = []
         self.label_debug_string = ""
         self.label_debug_cnt = 0
@@ -39,7 +42,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
 
 
     def Label_Debug(self, string):
-        if self.label_debug_cnt == 6:
+        if self.label_debug_cnt == 13:
             self.label_debug_string = ""
             self.label_notes.setText(self.label_debug_string)
             self.label_debug_cnt = 0
@@ -57,7 +60,9 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                 self.LineEdit_target.setText(login_dict['target'])  # 公众号的英文名称
                 self.LineEdit_user.setText(login_dict['user'])  # 自己公众号的账号
                 self.LineEdit_pwd.setText(login_dict['pwd'])  # 自己公众号的密码
-                self.LineEdit_timegap.setText(str(login_dict['timegap']))  # 每页爬取等待时间")
+                self.LineEdit_timegap.setText(str(login_dict['timegap']))  # 每页爬取等待时间"
+                self.lineEdit_timeEnd.setText(str(self.year_now))  # 结束时间为当前年
+                self.lineEdit_timeStart.setText("1999")  # 开始时间为1999
                 QApplication.processEvents()  # 刷新文本操作
                 p.close()
         except:
@@ -78,14 +83,12 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             print(e)
 
     def Process(self):
-        query_name = self.LineEdit_target.text()  # 公众号的英文名称
-        username = self.LineEdit_user.text()  # 自己公众号的账号
-        pwd = self.LineEdit_pwd.text()  # 自己公众号的密码
-        self.time_gap = self.LineEdit_timegap.text()  # 每页爬取等待时间")
-        if (self.time_gap == ""):
-            self.time_gap = 10
-        else:
-            self.time_gap = int(self.time_gap)
+        query_name = self.LineEdit_target.text()                      # 公众号的英文名称
+        username = self.LineEdit_user.text()                          # 自己公众号的账号
+        pwd = self.LineEdit_pwd.text()                                # 自己公众号的密码
+        self.time_gap = int(self.LineEdit_timegap.text()) or 10       # 每页爬取等待时间")
+        self.timeStart = int(self.lineEdit_timeStart.text()) or 2019  # 起始时间
+        self.timeEnd = int(self.lineEdit_timeEnd.text()) or 1999      # 结束时间
 
         if self.checkBox.isChecked() == True and pwd != "":
             dict = {'target': query_name, 'user': username, 'pwd': pwd, 'timegap': self.time_gap}
@@ -107,6 +110,28 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         self.Get_Articles(token, fakeid)
 
     def Login(self, username, pwd):
+        try:
+            with open(os.getcwd()+"/cookie.json", 'r+') as fp:
+                cookieToken_dict = json.load(fp)
+                cookies = cookieToken_dict[0]['COOKIES']
+                token = cookieToken_dict[0]['TOKEN']
+                print(token)
+                print(cookies)
+
+                if cookies != "" and token != "":
+                    self.Label_Debug("cookie.json读取成功")
+                    print("cookie.json读取成功")
+                self.Add_Cookies(cookies)
+
+                html = self.sess.get(r'https://mp.weixin.qq.com/cgi-bin/home?t=home/index&lang=zh_CN&token=%d' % int(token))
+                if "登陆" not in html.text:
+                    self.Label_Debug("cookie有效,无需浏览器登陆")
+                    print("cookie有效,无需浏览器登陆")
+                    return token, cookies
+        except Exception as e:
+            print("无cookie.json或失效 -", e)
+            self.Label_Debug("无cookie.json或失效")
+
         self.Label_Debug("正在打开浏览器,请稍等")
         browser = webdriver.Firefox()
         # browser = webdriver.Chrome()
@@ -130,14 +155,17 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         self.Label_Debug("登陆成功")
         token = re.search(r'token=(.*)', browser.current_url).group(1)
         cookies = browser.get_cookies()
-        with open("cookie.json", 'w+') as fp:
-            fp.write(json.dumps(cookies))
-            self.Label_Debug(">> 本地保存cookie")
-            fp.write(json.dumps([{"token": token}]))
-            self.Label_Debug(">> 本地保存token")
+        with open(os.getcwd()+"/cookie.json", 'w+') as fp:
+            temp_list = {}
+            temp_array = []
+            temp_list['COOKIES'] = cookies
+            temp_list['TOKEN'] = token
+            temp_array.append(temp_list)
+            json.dump(temp_array, fp)
             fp.close()
+            self.Label_Debug(">> 本地保存cookie和token")
+            print(">> 本地保存cookie和token")
         browser.close()
-        # print('token:', token)
         return token, cookies
 
     def Add_Cookies(self, cookie):
@@ -189,8 +217,9 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             try:
                 app_msg_list = html_json['app_msg_list']
             except Exception as e:
-                self.Label_Debug("！！！操作太频繁，请稍后再试！！！")
-                print("操作太频繁，请稍后再试", e)
+                self.Label_Debug("！！！操作太频繁，退出！！！")
+                print("！！！操作太频繁，退出！！！", e)
+                os._exit(0)
 
             if (str(app_msg_list) == '[]'):
                 break
@@ -200,6 +229,16 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                         self.Label_Debug("本条已存在，跳过")
                         print("本条已存在，跳过")
                         continue
+
+                    article_time = int(strftime("%Y", localtime(int(app_msg_list[j]['update_time']))))  # 当前文章时间戳转为年份
+                    if (self.timeEnd < article_time):
+                        self.Label_Debug("本条[%d]不在时间范围[%d-%d]内，跳过" % (article_time, self.timeStart, self.timeEnd))
+                        print("本条[%d]不在时间范围[%d-%d]内，跳过" % (article_time, self.timeStart, self.timeEnd))
+                        continue
+                    if(article_time < self.timeStart):
+                        self.Label_Debug("达到结束时间，退出")
+                        print("达到结束时间，退出")
+                        os._exit(0)
                     title_buf.append(app_msg_list[j]['title'])
                     link_buf.append(app_msg_list[j]['link'])
                     img_buf.append(app_msg_list[j]['cover'])
@@ -226,9 +265,6 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             self.get_content(title_buf, link_buf)
             title_buf.clear()  # 清除缓存
             link_buf.clear()  # 清除缓存
-            # self.Label_Debug(">> 休息 %d s" % self.time_gap)
-            # print(">> 休息 %d s" % self.time_gap)
-            # sleep(self.time_gap)
         self.Label_Debug(">> 抓取结束")
         print(">> 抓取结束")
 
@@ -244,7 +280,16 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                 os.makedirs(filepath)
             os.chdir(filepath)  # 切换至文件夹
 
-            html = self.sess.get(link_buf[index], headers=self.headers)
+            while True:
+                try:
+                    html = self.sess.get(link_buf[index], headers=self.headers)
+                    break
+                except Exception as e:
+                    print("连接出错，稍等2s", e)
+                    self.Label_Debug("连接出错，稍等2s" + str(e))
+                    sleep(2)
+                    continue
+
             soup = BeautifulSoup(html.text, 'lxml')
             try:
                 article = soup.find(class_="rich_media_content").find_all("p")  # 查找文章内容位置
@@ -263,9 +308,10 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                 print("本篇未匹配到图片 ->", e)
                 pass
 
-            # print("*" * 60)
+            print("*" * 60)
+            self.Label_Debug("*" * 30)
+            self.Label_Debug(each_title)
             if No_article != 1:
-                self.label_notes.setText(each_title)
                 for i in article:
                     line_content = i.get_text()  # 获取标签内的文本
                     # print(line_content)
@@ -274,7 +320,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                             fp.write(line_content + "\n")  # 写入本地文件
                             fp.close()
                 self.Label_Debug(">> 保存文档 - 完毕!")
-                print(">> 标题：", each_title)
+                # print(">> 标题：", each_title)
                 print(">> 保存文档 - 完毕!")
             if No_img != 1:
                 for i in range(len(img_urls)):
@@ -333,23 +379,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
