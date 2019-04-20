@@ -39,6 +39,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         self.label_debug_string = ""
         self.label_debug_cnt = 0
         self.total_articles = 0  # 当前文章数
+        self.keyWord = ""
 
 
     def Label_Debug(self, string):
@@ -74,6 +75,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         Process_thread.start()
         self.thread_list.append(Process_thread)
 
+
     def Stop_Run(self):
         try:
             self.stop_thread(self.thread_list.pop())
@@ -83,34 +85,39 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             print(e)
 
     def Process(self):
-        query_name = self.LineEdit_target.text()                 # 公众号的英文名称
-        username = self.LineEdit_user.text()                     # 自己公众号的账号
-        pwd = self.LineEdit_pwd.text()                           # 自己公众号的密码
-        self.time_gap = self.LineEdit_timegap.text() or 10       # 每页爬取等待时间
-        self.time_gap = int(self.time_gap)
-        self.timeStart = self.lineEdit_timeStart.text() or 2019  # 起始时间
-        self.timeStart = int(self.timeStart)
-        self.timeEnd = self.lineEdit_timeEnd.text() or 1999      # 结束时间
-        self.timeEnd = int(self.timeEnd)
+        try:
+            query_name = self.LineEdit_target.text()                 # 公众号的英文名称
+            username = self.LineEdit_user.text()                     # 自己公众号的账号
+            pwd = self.LineEdit_pwd.text()                           # 自己公众号的密码
+            self.time_gap = self.LineEdit_timegap.text() or 10       # 每页爬取等待时间
+            self.time_gap = int(self.time_gap)
+            self.timeStart = self.lineEdit_timeStart.text() or 2019  # 起始时间
+            self.timeStart = int(self.timeStart)
+            self.timeEnd = self.lineEdit_timeEnd.text() or 1999      # 结束时间
+            self.timeEnd = int(self.timeEnd)
+            self.keyWord = self.lineEdit_keyword.text()              # 关键词
 
-        if self.checkBox.isChecked() == True and pwd != "":
-            dict = {'target': query_name, 'user': username, 'pwd': pwd, 'timegap': self.time_gap}
-            with open(os.getcwd()+r'/login.json', 'w+') as p:
-                json.dump(dict, p)
-                p.close()
+            if self.checkBox.isChecked() == True and pwd != "":
+                dict = {'target': query_name, 'user': username, 'pwd': pwd, 'timegap': self.time_gap}
+                with open(os.getcwd()+r'/login.json', 'w+') as p:
+                    json.dump(dict, p)
+                    p.close()
 
-        [token, cookies] = self.Login(username, pwd)
-        self.Add_Cookies(cookies)
-        [fakeid, nickname] = self.Get_WeChat_Subscription(token, query_name)
-        Index_Cnt = 0
-        while True:
-            try:
-                self.rootpath = os.getcwd() + r"/spider-%d/" % Index_Cnt + nickname
-                os.makedirs(self.rootpath)
-                break
-            except:
-                Index_Cnt = Index_Cnt + 1
-        self.Get_Articles(token, fakeid)
+            [token, cookies] = self.Login(username, pwd)
+            self.Add_Cookies(cookies)
+            [fakeid, nickname] = self.Get_WeChat_Subscription(token, query_name)
+            Index_Cnt = 0
+            while True:
+                try:
+                    self.rootpath = os.getcwd() + r"/spider-%d/" % Index_Cnt + nickname
+                    os.makedirs(self.rootpath)
+                    break
+                except:
+                    Index_Cnt = Index_Cnt + 1
+            self.Get_Articles(token, fakeid)
+        except Exception as e:
+            self.Label_Debug("!!![%s]" % str(e))
+            print("!!![%s]" % str(e))
 
     def Login(self, username, pwd):
         try:
@@ -233,7 +240,11 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                         self.Label_Debug("本条已存在，跳过")
                         print("本条已存在，跳过")
                         continue
-
+                    if self.keyWord != "":
+                        if self.keyWord not in app_msg_list[j]['title']:
+                            self.Label_Debug("本条不匹配关键词[%s]，跳过" % self.keyWord)
+                            print("本条不匹配关键词[%s]，跳过" % self.keyWord)
+                            continue
                     article_time = int(strftime("%Y", localtime(int(app_msg_list[j]['update_time']))))  # 当前文章时间戳转为年份
                     if (self.timeEnd < article_time):
                         self.Label_Debug("本条[%d]不在时间范围[%d-%d]内，跳过" % (article_time, self.timeStart, self.timeEnd))
@@ -269,8 +280,8 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             self.get_content(title_buf, link_buf)
             title_buf.clear()  # 清除缓存
             link_buf.clear()  # 清除缓存
-        self.Label_Debug(">> 抓取结束")
-        print(">> 抓取结束")
+        self.Label_Debug(">> 程序结束!!! <<")
+        print(">> 程序结束!!! <<")
 
     def get_content(self, title_buf, link_buf):  # 获取地址对应的文章内容
         each_title = ""  # 初始化
