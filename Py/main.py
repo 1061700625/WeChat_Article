@@ -1,247 +1,482 @@
 # -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'mainwindow.ui'
-#
-# Created by: PyQt5 UI code generator 5.12.1
-#
-# WARNING! All changes made in this file will be lost!
-
+import WeChat
 from PyQt5 import QtCore, QtGui, QtWidgets
+import sys
+import os
+import re
+from time import sleep, localtime, time, strftime
+
+from PyQt5.QtWidgets import QApplication
+from bs4 import BeautifulSoup
+import requests
+import json
+import urllib.parse
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from math import ceil
+import threading
+import inspect
+import ctypes
+import random
 
 
-class Ui_MainWindow(object):
+
+class MyMainWindow(WeChat.Ui_MainWindow):
+    def __init__(self):
+        self.sess = requests.Session()
+        self.headers = {
+            'Host': 'mp.weixin.qq.com',
+            'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:65.0) Gecko/20100101 Firefox/65.0',
+        }
+        self.rootpath = os.getcwd() + r"/spider/"  # 全局变量，存放路径
+        self.time_gap = 5       # 全局变量，每页爬取等待时间
+        self.timeStart = 2019   # 全局变量，起始时间
+        self.timeEnd = 1999     # 全局变量，结束时间
+        self.year_now = localtime(time()).tm_year  # 当前年份，用于比对时间
+        self.thread_list = []
+        self.label_debug_string = ""
+        self.label_debug_cnt = 0
+        self.total_articles = 0  # 当前文章数
+        self.keyWord = ""
+        self.keyword_search_mode = 0
+        self.keyWord_2 = ""
+
+    def Label_Debug(self, string):
+        if self.label_debug_cnt == 13:
+            self.label_debug_string = ""
+            self.label_notes.setText(self.label_debug_string)
+            self.label_debug_cnt = 0
+        self.label_debug_string += "\r\n" + string
+        self.label_notes.setText(self.label_debug_string)
+        self.label_debug_cnt += 1
+
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.setEnabled(True)
-        MainWindow.resize(620, 545)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
-        MainWindow.setSizePolicy(sizePolicy)
-        MainWindow.setMinimumSize(QtCore.QSize(620, 520))
-        MainWindow.setMouseTracking(False)
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../../icon.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        MainWindow.setWindowIcon(icon)
-        self.centralWidget = QtWidgets.QWidget(MainWindow)
-        self.centralWidget.setObjectName("centralWidget")
-        self.gridLayout = QtWidgets.QGridLayout(self.centralWidget)
-        self.gridLayout.setContentsMargins(11, 11, 11, 11)
-        self.gridLayout.setSpacing(6)
-        self.gridLayout.setObjectName("gridLayout")
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_2.setSpacing(6)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.tableWidget_result = QtWidgets.QTableWidget(self.centralWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tableWidget_result.sizePolicy().hasHeightForWidth())
-        self.tableWidget_result.setSizePolicy(sizePolicy)
-        self.tableWidget_result.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.IBeamCursor))
-        self.tableWidget_result.setAutoFillBackground(False)
-        self.tableWidget_result.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.tableWidget_result.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.tableWidget_result.setLineWidth(1)
-        self.tableWidget_result.setMidLineWidth(1)
-        self.tableWidget_result.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        self.tableWidget_result.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
-        self.tableWidget_result.setAutoScroll(True)
-        self.tableWidget_result.setAlternatingRowColors(True)
-        self.tableWidget_result.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
-        self.tableWidget_result.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
-        self.tableWidget_result.setGridStyle(QtCore.Qt.SolidLine)
-        self.tableWidget_result.setRowCount(5)
-        self.tableWidget_result.setColumnCount(2)
-        self.tableWidget_result.setObjectName("tableWidget_result")
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_result.setHorizontalHeaderItem(0, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_result.setHorizontalHeaderItem(1, item)
-        self.tableWidget_result.horizontalHeader().setSortIndicatorShown(False)
-        self.tableWidget_result.horizontalHeader().setStretchLastSection(True)
-        self.tableWidget_result.verticalHeader().setCascadingSectionResizes(False)
-        self.horizontalLayout_2.addWidget(self.tableWidget_result)
-        spacerItem = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem)
-        self.label_notes = QtWidgets.QLabel(self.centralWidget)
-        self.label_notes.setMinimumSize(QtCore.QSize(200, 25))
-        self.label_notes.setMaximumSize(QtCore.QSize(200, 16777215))
-        font = QtGui.QFont()
-        font.setFamily("华文楷体")
-        font.setPointSize(10)
-        self.label_notes.setFont(font)
-        self.label_notes.setAutoFillBackground(False)
-        self.label_notes.setFrameShape(QtWidgets.QFrame.Panel)
-        self.label_notes.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.label_notes.setText("")
-        self.label_notes.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
-        self.label_notes.setObjectName("label_notes")
-        self.horizontalLayout_2.addWidget(self.label_notes)
-        self.gridLayout.addLayout(self.horizontalLayout_2, 3, 0, 1, 1)
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-        self.horizontalLayout.setSpacing(6)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.formLayout = QtWidgets.QFormLayout()
-        self.formLayout.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
-        self.formLayout.setSpacing(6)
-        self.formLayout.setObjectName("formLayout")
-        self.Label_target = QtWidgets.QLabel(self.centralWidget)
-        self.Label_target.setObjectName("Label_target")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.Label_target)
-        self.LineEdit_target = QtWidgets.QLineEdit(self.centralWidget)
-        self.LineEdit_target.setMinimumSize(QtCore.QSize(200, 25))
-        self.LineEdit_target.setStatusTip("")
-        self.LineEdit_target.setObjectName("LineEdit_target")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.LineEdit_target)
-        self.Label_user = QtWidgets.QLabel(self.centralWidget)
-        self.Label_user.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.Label_user.setObjectName("Label_user")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.Label_user)
-        self.LineEdit_user = QtWidgets.QLineEdit(self.centralWidget)
-        self.LineEdit_user.setMinimumSize(QtCore.QSize(200, 25))
-        self.LineEdit_user.setObjectName("LineEdit_user")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.LineEdit_user)
-        self.Label_pwd = QtWidgets.QLabel(self.centralWidget)
-        self.Label_pwd.setObjectName("Label_pwd")
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.Label_pwd)
-        self.LineEdit_pwd = QtWidgets.QLineEdit(self.centralWidget)
-        self.LineEdit_pwd.setMinimumSize(QtCore.QSize(200, 25))
-        self.LineEdit_pwd.setText("")
-        self.LineEdit_pwd.setEchoMode(QtWidgets.QLineEdit.Password)
-        self.LineEdit_pwd.setObjectName("LineEdit_pwd")
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.LineEdit_pwd)
-        self.gapLabel = QtWidgets.QLabel(self.centralWidget)
-        self.gapLabel.setObjectName("gapLabel")
-        self.formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.gapLabel)
-        self.LineEdit_timegap = QtWidgets.QLineEdit(self.centralWidget)
-        self.LineEdit_timegap.setMinimumSize(QtCore.QSize(200, 25))
-        self.LineEdit_timegap.setObjectName("LineEdit_timegap")
-        self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.LineEdit_timegap)
-        self.Label_time = QtWidgets.QLabel(self.centralWidget)
-        self.Label_time.setObjectName("Label_time")
-        self.formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.Label_time)
-        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_3.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-        self.horizontalLayout_3.setSpacing(6)
-        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        self.lineEdit_timeStart = QtWidgets.QLineEdit(self.centralWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit_timeStart.sizePolicy().hasHeightForWidth())
-        self.lineEdit_timeStart.setSizePolicy(sizePolicy)
-        self.lineEdit_timeStart.setMinimumSize(QtCore.QSize(20, 0))
-        self.lineEdit_timeStart.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEdit_timeStart.setObjectName("lineEdit_timeStart")
-        self.horizontalLayout_3.addWidget(self.lineEdit_timeStart)
-        self.lineEdit_timeEnd = QtWidgets.QLineEdit(self.centralWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit_timeEnd.sizePolicy().hasHeightForWidth())
-        self.lineEdit_timeEnd.setSizePolicy(sizePolicy)
-        self.lineEdit_timeEnd.setMinimumSize(QtCore.QSize(50, 0))
-        self.lineEdit_timeEnd.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEdit_timeEnd.setObjectName("lineEdit_timeEnd")
-        self.horizontalLayout_3.addWidget(self.lineEdit_timeEnd)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem1)
-        self.label = QtWidgets.QLabel(self.centralWidget)
-        self.label.setMinimumSize(QtCore.QSize(60, 0))
-        self.label.setAlignment(QtCore.Qt.AlignCenter)
-        self.label.setObjectName("label")
-        self.horizontalLayout_3.addWidget(self.label)
-        self.lineEdit_keyword = QtWidgets.QLineEdit(self.centralWidget)
-        self.lineEdit_keyword.setMinimumSize(QtCore.QSize(20, 0))
-        self.lineEdit_keyword.setObjectName("lineEdit_keyword")
-        self.horizontalLayout_3.addWidget(self.lineEdit_keyword)
-        self.formLayout.setLayout(4, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout_3)
-        self.horizontalLayout.addLayout(self.formLayout)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem2)
-        self.verticalLayout = QtWidgets.QVBoxLayout()
-        self.verticalLayout.setContentsMargins(0, -1, -1, -1)
-        self.verticalLayout.setSpacing(6)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.pushButton_start = QtWidgets.QPushButton(self.centralWidget)
-        self.pushButton_start.setMinimumSize(QtCore.QSize(20, 50))
-        self.pushButton_start.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.pushButton_start.setIconSize(QtCore.QSize(24, 24))
-        self.pushButton_start.setObjectName("pushButton_start")
-        self.verticalLayout.addWidget(self.pushButton_start)
-        self.checkBox = QtWidgets.QCheckBox(self.centralWidget)
-        self.checkBox.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.checkBox.setStatusTip("")
-        self.checkBox.setAutoFillBackground(True)
-        self.checkBox.setChecked(True)
-        self.checkBox.setObjectName("checkBox")
-        self.verticalLayout.addWidget(self.checkBox)
-        self.pushButton_stop = QtWidgets.QPushButton(self.centralWidget)
-        self.pushButton_stop.setMinimumSize(QtCore.QSize(20, 50))
-        self.pushButton_stop.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.pushButton_stop.setObjectName("pushButton_stop")
-        self.verticalLayout.addWidget(self.pushButton_stop)
-        self.horizontalLayout.addLayout(self.verticalLayout)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem3)
-        self.horizontalLayout.setStretch(0, 1)
-        self.gridLayout.addLayout(self.horizontalLayout, 1, 0, 1, 1)
-        self.label_head = QtWidgets.QLabel(self.centralWidget)
-        self.label_head.setMinimumSize(QtCore.QSize(0, 120))
-        self.label_head.setObjectName("label_head")
-        self.gridLayout.addWidget(self.label_head, 0, 0, 1, 1)
-        spacerItem4 = QtWidgets.QSpacerItem(10, 5, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
-        self.gridLayout.addItem(spacerItem4, 2, 0, 1, 1)
-        MainWindow.setCentralWidget(self.centralWidget)
-        self.menuBar = QtWidgets.QMenuBar(MainWindow)
-        self.menuBar.setGeometry(QtCore.QRect(0, 0, 620, 23))
-        self.menuBar.setObjectName("menuBar")
-        MainWindow.setMenuBar(self.menuBar)
-        self.mainToolBar = QtWidgets.QToolBar(MainWindow)
-        self.mainToolBar.setObjectName("mainToolBar")
-        MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.mainToolBar)
+        super(MyMainWindow, self).setupUi(MainWindow)
+        try:
+            with open(os.getcwd()+r'/login.json', 'r', encoding='utf-8') as p:
+                login_dict = json.load(p)
+                print("登陆文件读取成功")
+                self.Label_Debug("登陆文件读取成功")
+                self.LineEdit_target.setText(login_dict['target'])  # 公众号的英文名称
+                self.LineEdit_user.setText(login_dict['user'])  # 自己公众号的账号
+                self.LineEdit_pwd.setText(login_dict['pwd'])  # 自己公众号的密码
+                self.LineEdit_timegap.setText(str(login_dict['timegap']))  # 每页爬取等待时间"
+                self.lineEdit_timeEnd.setText(str(self.year_now))  # 结束时间为当前年
+                self.lineEdit_timeStart.setText("1999")  # 开始时间为1999
+                QApplication.processEvents()  # 刷新文本操作
+                p.close()
+        except:
+            pass
 
-        self.retranslateUi(MainWindow)
-        self.pushButton_start.clicked.connect(self.Start_Run)
-        self.pushButton_stop.clicked.connect(self.Stop_Run)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+    def Start_Run(self):
+        self.total_articles = 0
+        Process_thread = threading.Thread(target=self.Process, daemon=True)
+        Process_thread.start()
+        self.thread_list.append(Process_thread)
 
-    def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "微信公众号文章"))
-        self.tableWidget_result.setSortingEnabled(False)
-        item = self.tableWidget_result.horizontalHeaderItem(0)
-        item.setText(_translate("MainWindow", "Title"))
-        item = self.tableWidget_result.horizontalHeaderItem(1)
-        item.setText(_translate("MainWindow", "URL"))
-        self.label_notes.setWhatsThis(_translate("MainWindow", "调试窗口"))
-        self.Label_target.setText(_translate("MainWindow", "目标公众号英文名"))
-        self.LineEdit_target.setPlaceholderText(_translate("MainWindow", "为空则默认新华社(xinhuashefabu1)"))
-        self.Label_user.setText(_translate("MainWindow", "个人公众号账号"))
-        self.LineEdit_user.setPlaceholderText(_translate("MainWindow", "为空则自动打开页面后手动输入"))
-        self.Label_pwd.setText(_translate("MainWindow", "个人公众号密码"))
-        self.LineEdit_pwd.setPlaceholderText(_translate("MainWindow", "为空则自动打开页面后手动输入"))
-        self.gapLabel.setText(_translate("MainWindow", "查询间隔(s)"))
-        self.LineEdit_timegap.setPlaceholderText(_translate("MainWindow", "为空则默认为5s,一页约10条，越短越快被限制"))
-        self.Label_time.setText(_translate("MainWindow", "时间范围(年)"))
-        self.lineEdit_timeStart.setPlaceholderText(_translate("MainWindow", "1999"))
-        self.lineEdit_timeEnd.setPlaceholderText(_translate("MainWindow", "2019"))
-        self.label.setText(_translate("MainWindow", "关键词"))
-        self.pushButton_start.setText(_translate("MainWindow", "启动(*^▽^*)"))
-        self.checkBox.setWhatsThis(_translate("MainWindow", "记住密码"))
-        self.checkBox.setText(_translate("MainWindow", "记住密码"))
-        self.pushButton_stop.setText(_translate("MainWindow", "终止￣へ￣"))
-        self.label_head.setText(_translate("MainWindow", "****************************************************************************************************\n"
-"* 程序原理:\n"
-">> 通过selenium登录获取token和cookie，再自动爬取和下载\n"
-"* 使用前提： *\n"
-">> 电脑已装Firefox、Chrome、Opera、Edge等浏览器(默认Firefox驱动)\n"
-">> 下载selenium驱动放入python安装目录，将目录添加至环境变量(https://www.seleniumhq.org/download/)\n"
-">> 申请一个微信公众号(https://mp.weixin.qq.com)\n"
-"                         Copyright © SXF  本软件禁止一切形式的商业活动\n"
-"****************************************************************************************************"))
+    def Stop_Run(self):
+        try:
+            self.stop_thread(self.thread_list.pop())
+            self.Label_Debug("终止成功!")
+            print("终止成功!")
+        except Exception as e:
+            print(e)
+
+    def Start_Run_2(self):
+        self.keyword_search_mode = 1
+        Process_thread = threading.Thread(target=self.Process, daemon=True)
+        Process_thread.start()
+        self.thread_list.append(Process_thread)
+
+    def Stop_Run_2(self):
+        try:
+            self.keyword_search_mode = 0
+            self.stop_thread(self.thread_list.pop())
+            self.Label_Debug("终止成功!")
+            print("终止成功!")
+        except Exception as e:
+            print(e)
+
+
+    def Process(self):
+        try:
+            query_name = self.LineEdit_target.text()                 # 公众号的英文名称
+            username = self.LineEdit_user.text()                     # 自己公众号的账号
+            pwd = self.LineEdit_pwd.text()                           # 自己公众号的密码
+            self.time_gap = self.LineEdit_timegap.text() or 10       # 每页爬取等待时间
+            self.time_gap = int(self.time_gap)
+            self.timeStart = self.lineEdit_timeStart.text() or 2019  # 起始时间
+            self.timeStart = int(self.timeStart)
+            self.timeEnd = self.lineEdit_timeEnd.text() or 1999      # 结束时间
+            self.timeEnd = int(self.timeEnd)
+            self.keyWord = self.lineEdit_keyword.text()              # 关键词
+
+            if self.checkBox.isChecked() == True and pwd != "":
+                dict = {'target': query_name, 'user': username, 'pwd': pwd, 'timegap': self.time_gap}
+                with open(os.getcwd()+r'/login.json', 'w+') as p:
+                    json.dump(dict, p)
+                    p.close()
+
+            [token, cookies] = self.Login(username, pwd)
+            self.Add_Cookies(cookies)
+            if self.keyword_search_mode == 1:
+                self.keyWord_2 = self.lineEdit_keyword_2.text()  # 关键词
+                self.KeyWord_Search(token, self.keyWord_2)
+            else:
+                [fakeid, nickname] = self.Get_WeChat_Subscription(token, query_name)
+                Index_Cnt = 0
+                while True:
+                    try:
+                        self.rootpath = os.getcwd() + r"/spider-%d/" % Index_Cnt + nickname
+                        os.makedirs(self.rootpath)
+                        break
+                    except:
+                        Index_Cnt = Index_Cnt + 1
+                self.Get_Articles(token, fakeid)
+        except Exception as e:
+            self.Label_Debug("!!![%s]" % str(e))
+            print("!!![%s]" % str(e))
+
+    def Login(self, username, pwd):
+        try:
+            with open(os.getcwd()+"/cookie.json", 'r+') as fp:
+                cookieToken_dict = json.load(fp)
+                cookies = cookieToken_dict[0]['COOKIES']
+                token = cookieToken_dict[0]['TOKEN']
+                print(token)
+                print(cookies)
+
+                if cookies != "" and token != "":
+                    self.Label_Debug("cookie.json读取成功")
+                    print("cookie.json读取成功")
+                self.Add_Cookies(cookies)
+
+                html = self.sess.get(r'https://mp.weixin.qq.com/cgi-bin/home?t=home/index&lang=zh_CN&token=%d' % int(token))
+                if "登陆" not in html.text:
+                    self.Label_Debug("cookie有效,无需浏览器登陆")
+                    print("cookie有效,无需浏览器登陆")
+                    return token, cookies
+        except Exception as e:
+            print("无cookie.json或失效 -", e)
+            self.Label_Debug("无cookie.json或失效")
+
+        self.Label_Debug("正在打开浏览器,请稍等")
+        print("正在打开浏览器,请稍等")
+        browser = webdriver.Firefox()
+        # browser = webdriver.Chrome()
+        browser.maximize_window()
+
+        browser.get(r'https://mp.weixin.qq.com')
+        browser.implicitly_wait(60)
+        account = browser.find_element_by_name("account")
+        password = browser.find_element_by_name("password")
+        if (username != "" and pwd != ""):
+            account.click()
+            account.send_keys(username)
+            password.click()
+            password.send_keys(pwd)
+            browser.find_element_by_xpath(r'//*[@id="header"]/div[2]/div/div/form/div[4]/a').click()
+        else:
+            self.Label_Debug("* 请在10分钟内手动完成登录 *")
+        WebDriverWait(browser, 60 * 10, 0.5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, r'.weui-desktop-account__nickname'))
+        )
+        self.Label_Debug("登陆成功")
+        token = re.search(r'token=(.*)', browser.current_url).group(1)
+        cookies = browser.get_cookies()
+        with open(os.getcwd()+"/cookie.json", 'w+') as fp:
+            temp_list = {}
+            temp_array = []
+            temp_list['COOKIES'] = cookies
+            temp_list['TOKEN'] = token
+            temp_array.append(temp_list)
+            json.dump(temp_array, fp)
+            fp.close()
+            self.Label_Debug(">> 本地保存cookie和token")
+            print(">> 本地保存cookie和token")
+        browser.close()
+        return token, cookies
+
+    def Add_Cookies(self, cookie):
+        c = requests.cookies.RequestsCookieJar()
+        for i in cookie:  # 添加cookie到CookieJar
+            c.set(i["name"], i["value"])
+            self.sess.cookies.update(c)  # 更新session里的cookie
+
+    def KeyWord_Search(self, token, keyword):
+        url_buf = []
+        title_buf = []
+        header = {
+            'Content - Type': r'application/x-www-form-urlencoded;charset=UTF-8',
+            'Host': 'mp.weixin.qq.com',
+            'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36',
+            'Referer': 'https://mp.weixin.qq.com/cgi-bin/appmsg?t=media/appmsg_edit&action=edit&type=10&isMul=1&isNew=1&share=1&lang=zh_CN&token=%d' % int(token)
+        }
+        url = r'https://mp.weixin.qq.com/cgi-bin/operate_appmsg?sub=check_appmsg_copyright_stat'
+        data = {'token': token, 'lang': 'zh_CN', 'f': 'json', 'ajax': 1, 'random': random.uniform(0, 1), 'url': keyword, 'allow_reprint': 0, 'begin': 0, 'count': 10}
+        html_json = self.sess.post(url, data=data, headers=header).json()
+        total = html_json['total']
+        total_page = ceil(total / 10)
+        print(total_page, '-', total)
+        table_index = 0
+        for i in range(total_page):
+            data = {
+                'token': token,
+                'lang': 'zh_CN',
+                'f': 'json',
+                'ajax': 1,
+                'random': random.uniform(0, 1),
+                'url': keyword,
+                'allow_reprint': 0,
+                'begin': i*10,
+                'count': 10
+            }
+            html_json = self.sess.post(url, data=data, headers=header).json()
+            page_len = len(html_json['list'])
+            # print(page_len)
+            for j in range(page_len):
+                url_buf.append(html_json['list'][j]['url'])
+                title_buf.append(html_json['list'][j]['title'])
+                print(j+1, ' - ', html_json['list'][j]['title'])
+                table_count = self.tableWidget_result.rowCount()
+                if (table_index >= table_count):
+                    self.tableWidget_result.insertRow(table_count)
+                self.tableWidget_result.setItem(table_index, 0, QtWidgets.QTableWidgetItem(title_buf[j]))  # i*20+j
+                self.tableWidget_result.setItem(table_index, 1, QtWidgets.QTableWidgetItem(url_buf[j]))  # i*20+j
+                table_index = table_index + 1
+            print('*' * 60)
+            self.get_content(title_buf, url_buf)
+            url_buf.clear()
+            title_buf.clear()
+
+
+
+    def Get_WeChat_Subscription(self, token, query):
+        if (query == ""):
+            query = "xinhuashefabu1"
+        url = r'https://mp.weixin.qq.com/cgi-bin/searchbiz?action=search_biz&token={0}&lang=zh_CN&f=json&ajax=1&random=0.5182749224035845&query={1}&begin=0&count=5'.format(
+            token, query)
+        html_json = self.sess.get(url, headers=self.headers).json()
+        fakeid = html_json['list'][0]['fakeid']
+        nickname = html_json['list'][0]['nickname']
+        self.Label_Debug("nickname: "+nickname)
+        return fakeid, nickname
+
+    def Get_Articles(self, token, fakeid):
+        title_buf = []
+        link_buf = []
+        img_buf = []
+
+        Total_buf = []
+        url = r'https://mp.weixin.qq.com/cgi-bin/appmsg?token={0}&lang=zh_CN&f=json&ajax=1&random={1}&action=list_ex&begin=0&count=5&query=&fakeid={2}&type=9'.format(token,  random.uniform(0, 1), fakeid)
+        html_json = self.sess.get(url, headers=self.headers).json()
+        try:
+            Total_Page = ceil(int(html_json['app_msg_cnt']) / 5)
+        except Exception as e:
+            self.Label_Debug("!! 失败信息："+html_json['base_resp']['err_msg'])
+            return
+        table_index = 0
+        for i in range(Total_Page):
+            self.Label_Debug("第[%d/%d]页" % (i + 1, Total_Page))
+            print("第[%d/%d]页" % (i + 1, Total_Page))
+            begin = i * 5
+            url = r'https://mp.weixin.qq.com/cgi-bin/appmsg?token={0}&lang=zh_CN&f=json&ajax=1&random={1}&action=list_ex&begin={2}&count=5&query=&fakeid={3}&type=9'.format(
+                token,  random.uniform(0, 1), begin, fakeid)
+            while True:
+                try:
+                    html_json = self.sess.get(url, headers=self.headers).json()
+                    break
+                except Exception as e:
+                    print("连接出错，稍等2s", e)
+                    self.Label_Debug("连接出错，稍等2s" + str(e))
+                    sleep(2)
+                    continue
+            try:
+                app_msg_list = html_json['app_msg_list']
+            except Exception as e:
+                self.Label_Debug("！！！操作太频繁，退出！！！")
+                print("！！！操作太频繁，退出！！！", e)
+                os._exit(0)
+
+            if (str(app_msg_list) == '[]'):
+                break
+            for j in range(20):
+                try:
+                    if (app_msg_list[j]['title'] in Total_buf):
+                        self.Label_Debug("本条已存在，跳过")
+                        print("本条已存在，跳过")
+                        continue
+                    if self.keyWord != "":
+                        if self.keyWord not in app_msg_list[j]['title']:
+                            self.Label_Debug("本条不匹配关键词[%s]，跳过" % self.keyWord)
+                            print("本条不匹配关键词[%s]，跳过" % self.keyWord)
+                            continue
+                    article_time = int(strftime("%Y", localtime(int(app_msg_list[j]['update_time']))))  # 当前文章时间戳转为年份
+                    if (self.timeEnd < article_time):
+                        self.Label_Debug("本条[%d]不在时间范围[%d-%d]内，跳过" % (article_time, self.timeStart, self.timeEnd))
+                        print("本条[%d]不在时间范围[%d-%d]内，跳过" % (article_time, self.timeStart, self.timeEnd))
+                        continue
+                    if(article_time < self.timeStart):
+                        self.Label_Debug("达到结束时间，退出")
+                        print("达到结束时间，退出")
+                        os._exit(0)
+                    title_buf.append(app_msg_list[j]['title'])
+                    link_buf.append(app_msg_list[j]['link'])
+                    img_buf.append(app_msg_list[j]['cover'])
+                    Total_buf.append(app_msg_list[j]['title'])
+
+                    table_count = self.tableWidget_result.rowCount()
+                    if(table_index >= table_count):
+                        self.tableWidget_result.insertRow(table_count)
+                    self.tableWidget_result.setItem(table_index, 0, QtWidgets.QTableWidgetItem(title_buf[j]))  # i*20+j
+                    self.tableWidget_result.setItem(table_index, 1, QtWidgets.QTableWidgetItem(link_buf[j]))  # i*20+j
+                    table_index = table_index + 1
+
+                    self.total_articles += 1
+                    with open(self.rootpath + "/spider.txt", 'a+') as fp:
+                        fp.write('*' * 60 + '\n【%d】\n  Title: ' % self.total_articles + title_buf[j] + '\n  Link: ' + link_buf[j] + '\n  Img: ' + img_buf[j] + '\r\n\r\n')
+                        fp.close()
+                        self.Label_Debug(">> 第%d条写入完成：%s" % (j + 1, title_buf[j]))
+                        print(">> 第%d条写入完成：%s" % (j + 1, title_buf[j]))
+                except Exception as e:
+                    print(">> 本页抓取结束 - ", e)
+                    break
+            self.Label_Debug(">> 一页抓取结束，开始下载")
+            print(">> 一页抓取结束，开始下载")
+            self.get_content(title_buf, link_buf)
+            title_buf.clear()  # 清除缓存
+            link_buf.clear()  # 清除缓存
+        self.Label_Debug(">> 程序结束!!! <<")
+        print(">> 程序结束!!! <<")
+
+    def get_content(self, title_buf, link_buf):  # 获取地址对应的文章内容
+        each_title = ""  # 初始化
+        each_url = ""  # 初始化
+        length = len(title_buf)
+
+        for index in range(length):
+            each_title = re.sub(r'[\|\/\<\>\:\*\?\\\"]', "_", title_buf[index])  # 剔除不合法字符
+            filepath = self.rootpath + "/" + each_title  # 为每篇文章创建文件夹
+            if (not os.path.exists(filepath)):  # 若不存在，则创建文件夹
+                os.makedirs(filepath)
+            os.chdir(filepath)  # 切换至文件夹
+
+            while True:
+                try:
+                    html = self.sess.get(link_buf[index], headers=self.headers)
+                    break
+                except Exception as e:
+                    print("连接出错，稍等2s", e)
+                    self.Label_Debug("连接出错，稍等2s" + str(e))
+                    sleep(2)
+                    continue
+
+            soup = BeautifulSoup(html.text, 'lxml')
+            try:
+                article = soup.find(class_="rich_media_content").find_all("p")  # 查找文章内容位置
+                No_article = 0
+            except Exception as e:
+                No_article = 1
+                self.Label_Debug("本篇未匹配到文字 ->"+str(e))
+                print("本篇未匹配到文字 ->", e)
+                pass
+            try:
+                img_urls = soup.find(class_="rich_media_content").find_all("img")  # 获得文章图片URL集
+                No_img = 0
+            except Exception as e:
+                No_img = 1
+                self.Label_Debug("本篇未匹配到图片 ->" + str(e))
+                print("本篇未匹配到图片 ->", e)
+                pass
+
+            print("*" * 60)
+            self.Label_Debug("*" * 30)
+            self.Label_Debug(each_title)
+            if No_article != 1:
+                for i in article:
+                    line_content = i.get_text()  # 获取标签内的文本
+                    # print(line_content)
+                    if (line_content != None):  # 文本不为空
+                        with open(each_title + r'.txt', 'a+', encoding='utf-8') as fp:
+                            fp.write(line_content + "\n")  # 写入本地文件
+                            fp.close()
+                self.Label_Debug(">> 保存文档 - 完毕!")
+                # print(">> 标题：", each_title)
+                print(">> 保存文档 - 完毕!")
+            if No_img != 1:
+                for i in range(len(img_urls)):
+                    while True:
+                        try:
+                            pic_down = self.sess.get(img_urls[i]["data-src"], timeout=(30, 60))  # 连接超时30s，读取超时60s，防止卡死
+                            break
+                        except Exception as e:
+                            print("下载超时 ->", e)
+                            self.Label_Debug("下载超时,重试 ->" + str(e))
+                            continue
+                    img_urls[i]["src"] = str(i)+r'.jpeg'  # 更改图片地址为本地
+                    with open(str(i) + r'.jpeg', 'ab+') as fp:
+                        fp.write(pic_down.content)
+                        fp.close()
+                self.Label_Debug(">> 保存图片%d张 - 完毕!" % len(img_urls))
+                print(">> 保存图片%d张 - 完毕!" % len(img_urls))
+
+            with open(each_title+r'.html', 'w', encoding='utf-8') as f:  # 保存html文件
+                f.write(str(soup))
+                f.close()
+                self.Label_Debug(">> 保存html - 完毕!")
+                print(">> 保存html - 完毕!")
+            self.Label_Debug(">> 休息 %d s" % self.time_gap)
+            print(">> 休息 %d s" % self.time_gap)
+            sleep(self.time_gap)
+
+
+################################强制关闭线程##################################################
+    def _async_raise(self, tid, exctype):
+        """raises the exception, performs cleanup if needed"""
+        tid = ctypes.c_long(tid)
+        if not inspect.isclass(exctype):
+            exctype = type(exctype)
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(exctype))
+        if res == 0:
+            raise ValueError("invalid thread id")
+        elif res != 1:
+            # """if it returns a number greater than one, you're in trouble,
+            # and you should call it again with exc=NULL to revert the effect"""
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, None)
+            raise SystemError("PyThreadState_SetAsyncExc failed")
+
+    def stop_thread(self, thread):
+        self._async_raise(thread.ident, SystemExit)
+###############################################################################################
+
+def main():
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = MyMainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
