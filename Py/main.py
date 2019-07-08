@@ -129,6 +129,10 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             print(e)
 
     def Start_Run_2(self):
+        try:
+            os.makedirs(self.rootpath)
+        except:
+            pass
         self.keyword_search_mode = 1
         self.total_articles = 0
         Process_thread = threading.Thread(target=self.Process, daemon=True)
@@ -504,9 +508,9 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                     self.total_articles += 1
                     dict_in = {"Title": title_buf[j], "Link": link_buf[j], "Img": img_buf[j]}
                     self.url_json_once(dict_in)
-                    # with open(self.rootpath + "/spider.txt", 'a+') as fp:
-                    #     fp.write('*' * 60 + '\n【%d】\n  Title: ' % self.total_articles + title_buf[j] + '\n  Link: ' + link_buf[j] + '\n  Img: ' + img_buf[j] + '\r\n\r\n')
-                    #     fp.close()
+                    with open(self.rootpath + "/spider.txt", 'a+') as fp:
+                        fp.write('*' * 60 + '\n【%d】\n  Title: ' % self.total_articles + title_buf[j] + '\n  Link: ' + link_buf[j] + '\n  Img: ' + img_buf[j] + '\r\n\r\n')
+                        fp.close()
                     self.Label_Debug(">> 第%d条写入完成：%s" % (self.total_articles, title_buf[j]))
                     print(">> 第%d条写入完成：%s" % (self.total_articles, title_buf[j]))
                     self.conf.set("resume", "total_articles", str(self.total_articles))  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -560,10 +564,16 @@ class MyMainWindow(WeChat.Ui_MainWindow):
     def get_content(self, title_buf, link_buf):  # 获取地址对应的文章内容
         each_title = ""  # 初始化
         each_url = ""  # 初始化
-        length = 1
+        if self.keyword_search_mode == 1:
+            length = len(title_buf)
+        else:
+            length = 1
 
         for index in range(length):
-            each_title = re.sub(r'[\|\/\<\>\:\*\?\\\"]', "_", title_buf)  # 剔除不合法字符
+            if self.keyword_search_mode == 1:
+                each_title = re.sub(r'[\|\/\<\>\:\*\?\\\"]', "_", title_buf[index])  # 剔除不合法字符
+            else:
+                each_title = re.sub(r'[\|\/\<\>\:\*\?\\\"]', "_", title_buf)  # 剔除不合法字符
             filepath = self.rootpath + "/" + each_title  # 为每篇文章创建文件夹
             if (not os.path.exists(filepath)):  # 若不存在，则创建文件夹
                 os.makedirs(filepath)
@@ -571,7 +581,10 @@ class MyMainWindow(WeChat.Ui_MainWindow):
 
             while True:
                 try:
-                    html = self.sess.get(link_buf, headers=self.headers, timeout=(30, 60))
+                    if self.keyword_search_mode == 1:
+                        html = self.sess.get(link_buf[index], headers=self.headers, timeout=(30, 60))
+                    else:
+                        html = self.sess.get(link_buf, headers=self.headers, timeout=(30, 60))
                     break
                 except Exception as e:
                     print("连接出错，稍等2s", e)
@@ -642,10 +655,10 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                 f.close()
                 self.Label_Debug(">> 保存html - 完毕!")
                 print(">> 保存html - 完毕!")
-            # self.Label_Debug(">> 休息 %d s" % self.time_gap)
-            # print(">> 休息 %d s" % self.time_gap)
-            # sleep(self.time_gap)
-
+            if self.keyword_search_mode == 1:
+                self.Label_Debug(">> 休息 %d s" % self.time_gap)
+                print(">> 休息 %d s" % self.time_gap)
+                sleep(self.time_gap)
 
 ################################强制关闭线程##################################################
     def _async_raise(self, tid, exctype):
@@ -677,3 +690,21 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
