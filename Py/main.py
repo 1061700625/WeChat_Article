@@ -387,7 +387,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                 self.tableWidget_result.setItem(table_index, 1, QtWidgets.QTableWidgetItem(url_buf[j]))  # i*20+j
                 table_index = table_index + 1
                 self.total_articles += 1
-                with open(self.rootpath + "/spider.txt", 'a+') as fp:
+                with open(self.rootpath + "/spider.txt", 'a+', encoding="utf-8") as fp:
                     fp.write('*' * 60 + '\n【%d】\n  Title: ' % self.total_articles + title_buf[j] + '\n  Link: ' + url_buf[j] + '\n  Img: ' + '\r\n\r\n')
                     fp.close()
                     self.Label_Debug(">> 第%d条写入完成：%s" % (j + 1, title_buf[j]))
@@ -508,7 +508,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                     self.total_articles += 1
                     dict_in = {"Title": title_buf[j], "Link": link_buf[j], "Img": img_buf[j]}
                     self.url_json_once(dict_in)
-                    with open(self.rootpath + "/spider.txt", 'a+') as fp:
+                    with open(self.rootpath + "/spider.txt", 'a+', encoding="utf-8") as fp:
                         fp.write('*' * 60 + '\n【%d】\n  Title: ' % self.total_articles + title_buf[j] + '\n  Link: ' + link_buf[j] + '\n  Img: ' + img_buf[j] + '\r\n\r\n')
                         fp.close()
                     self.Label_Debug(">> 第%d条写入完成：%s" % (self.total_articles, title_buf[j]))
