@@ -86,13 +86,19 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         # self.progressBar.setValue(0)
 
     def Label_Debug(self, string):
-        if self.label_debug_cnt == 13:
+        if self.label_debug_cnt == 12:
             self.label_debug_string = ""
             self.label_notes.setText(self.label_debug_string)
             self.label_debug_cnt = 0
         self.label_debug_string += "\r\n" + string
         self.label_notes.setText(self.label_debug_string)
         self.label_debug_cnt += 1
+
+    def Label_Debug_Clear(self):
+        self.label_debug_string = ""
+        self.label_notes.setText(self.label_debug_string)
+        self.label_notes.clear()
+        self.label_debug_cnt = 0
 
     def setupUi(self, MainWindow):
         super(MyMainWindow, self).setupUi(MainWindow)
@@ -470,6 +476,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
 
             if (str(app_msg_list) == '[]'):
                 print('结束了')
+                self.Label_Debug("结束了")
                 break
             for j in range(30):
                 try:
@@ -532,8 +539,9 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             self.conf.set("resume", "pagenum", str(i))  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             self.conf.write(open(self.cfgpath, "r+", encoding="utf-8"))
             sleep(self.time_gap)
-        self.Label_Debug(">> 程序结束!!! <<")
-        print(">> 程序结束!!! <<")
+        self.Label_Debug_Clear()
+        self.Label_Debug(">> 列表抓取结束!!! <<")
+        print(">> 列表抓取结束!!! <<")
         self.download_end = 1
 
 
@@ -553,6 +561,9 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                     self.conf.set("resume", "download_cnt", str(self.download_cnt))  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     self.conf.write(open(self.cfgpath, "r+", encoding="utf-8"))
                 elif self.download_cnt >= self.linkbuf_cnt and self.download_end == 1:
+                    self.Label_Debug_Clear()
+                    self.Label_Debug(">> 程序结束, 欢迎再用!!! <<")
+                    print(">> 程序结束, 欢迎再用!!! <<")
                     break
                 elif self.download_cnt == self.linkbuf_cnt and self.download_end == 0:
                     sleep(2)
@@ -690,21 +701,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
