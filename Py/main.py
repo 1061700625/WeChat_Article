@@ -34,8 +34,8 @@ conf.ini
 # 设置 递归调用深度 为 一百万
 sys.setrecursionlimit(1000000)
 
-title_buf = []
-link_buf = []
+# title_buf = []
+# link_buf = []
 pro_continue = 0
 class MyMainWindow(WeChat.Ui_MainWindow):
     def __init__(self):
@@ -64,9 +64,11 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         self.download_end = 0
         self.isresume = self.Check_Config()
         self.url_json_init()
+        self.title_buf = []
+        self.link_buf = []
 
     def vari_init(self):
-        global title_buf, link_buf
+        # global title_buf, link_buf
         self.rootpath = os.getcwd() + r"/spider/"  # 全局变量，存放路径
         self.thread_list = []
         self.label_debug_string = ""
@@ -80,8 +82,8 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         self.download_cnt = 0
         self.linkbuf_cnt = 0
         self.download_end = 0
-        title_buf.clear()  # 清除缓存
-        link_buf.clear()  # 清除缓存
+        self.title_buf.clear()  # 清除缓存
+        self.link_buf.clear()  # 清除缓存
         # self.progressBar.setMaximum(100)
         # self.progressBar.setValue(0)
 
@@ -278,7 +280,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         self.url_json_update(self.json_read, dict_add)  # {"Title": 1, "Link": 2, "Img": 3}
         self.url_json_write(self.json_read)
         self.json_read = self.url_json_read()
-        print("url_json_once OK")
+        # print("url_json_once OK")
         # print(self.json_read)
 
     def Login(self, username, pwd):
@@ -352,8 +354,8 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             self.sess.cookies.update(c)  # 更新session里的cookie
 
     def KeyWord_Search(self, token, keyword):
-        url_buf = []
-        title_buf = []
+        self.url_buf = []
+        self.title_buf = []
         header = {
             'Content - Type': r'application/x-www-form-urlencoded;charset=UTF-8',
             'Host': 'mp.weixin.qq.com',
@@ -383,25 +385,26 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             page_len = len(html_json['list'])
             # print(page_len)
             for j in range(page_len):
-                url_buf.append(html_json['list'][j]['url'])
-                title_buf.append(html_json['list'][j]['title'])
+                self.url_buf.append(html_json['list'][j]['url'])
+                self.title_buf.append(html_json['list'][j]['title'])
                 print(j+1, ' - ', html_json['list'][j]['title'])
                 table_count = self.tableWidget_result.rowCount()
                 if (table_index >= table_count):
                     self.tableWidget_result.insertRow(table_count)
-                self.tableWidget_result.setItem(table_index, 0, QtWidgets.QTableWidgetItem(title_buf[j]))  # i*20+j
-                self.tableWidget_result.setItem(table_index, 1, QtWidgets.QTableWidgetItem(url_buf[j]))  # i*20+j
+                self.tableWidget_result.setItem(table_index, 0, QtWidgets.QTableWidgetItem(self.title_buf[j]))  # i*20+j
+                self.tableWidget_result.setItem(table_index, 1, QtWidgets.QTableWidgetItem(self.url_buf[j]))  # i*20+j
                 table_index = table_index + 1
                 self.total_articles += 1
                 with open(self.rootpath + "/spider.txt", 'a+', encoding="utf-8") as fp:
-                    fp.write('*' * 60 + '\n【%d】\n  Title: ' % self.total_articles + title_buf[j] + '\n  Link: ' + url_buf[j] + '\n  Img: ' + '\r\n\r\n')
+                    fp.write('*' * 60 + '\n【%d】\n  Title: ' % self.total_articles + self.title_buf[j] + '\n  Link: ' + self.url_buf[j] + '\n  Img: ' + '\r\n\r\n')
+                    # fp.write('\n【%d】\n' % self.total_articles + '\n' + url_buf[j] + '\r\n')
                     fp.close()
-                    self.Label_Debug(">> 第%d条写入完成：%s" % (j + 1, title_buf[j]))
-                    print(">> 第%d条写入完成：%s" % (j + 1, title_buf[j]))
+                    self.Label_Debug(">> 第%d条写入完成：%s" % (j + 1, self.title_buf[j]))
+                    print(">> 第%d条写入完成：%s" % (j + 1, self.title_buf[j]))
             print('*' * 60)
-            self.get_content(title_buf, url_buf)
-            url_buf.clear()
-            title_buf.clear()
+            self.get_content(self.title_buf, self.url_buf)
+            self.url_buf.clear()
+            self.title_buf.clear()
 
     def Get_WeChat_Subscription(self, token, query):
         if (query == ""):
@@ -415,9 +418,8 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         return fakeid, nickname
 
     def Get_Articles(self, token, fakeid):
-        global title_buf, link_buf
-        title_buf = []
-        link_buf = []
+        # title_buf = []
+        # link_buf = []
         img_buf = []
 
         Total_buf = []
@@ -447,6 +449,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         download_thread.start()
         self.thread_list.append(download_thread)
 
+        _buf_index = 0
         for i in range(Total_Page):
             if self.isresume == 1:
                 i = i + self.pagenum
@@ -500,40 +503,45 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                         self.Stop_Run()
                         return
                         # os._exit(0)
-                    title_buf.append(app_msg_list[j]['title'])
-                    link_buf.append(app_msg_list[j]['link'])
+                    self.title_buf.append(app_msg_list[j]['title'])
+                    self.link_buf.append(app_msg_list[j]['link'])
                     img_buf.append(app_msg_list[j]['cover'])
                     Total_buf.append(app_msg_list[j]['title'])
 
                     table_count = self.tableWidget_result.rowCount()
                     if(table_index >= table_count):
                         self.tableWidget_result.insertRow(table_count)
-                    self.tableWidget_result.setItem(table_index, 0, QtWidgets.QTableWidgetItem(title_buf[j]))  # i*20+j
-                    self.tableWidget_result.setItem(table_index, 1, QtWidgets.QTableWidgetItem(link_buf[j]))  # i*20+j
+                    self.tableWidget_result.setItem(table_index, 0, QtWidgets.QTableWidgetItem(self.title_buf[_buf_index+j]))  # i*20+j
+                    self.tableWidget_result.setItem(table_index, 1, QtWidgets.QTableWidgetItem(self.link_buf[_buf_index+j]))  # i*20+j
                     table_index = table_index + 1
 
                     self.total_articles += 1
-                    dict_in = {"Title": title_buf[j], "Link": link_buf[j], "Img": img_buf[j]}
+                    dict_in = {"Title": self.title_buf[_buf_index+j], "Link": self.link_buf[_buf_index+j], "Img": img_buf[_buf_index+j]}
                     self.url_json_once(dict_in)
                     with open(self.rootpath + "/spider.txt", 'a+', encoding="utf-8") as fp:
-                        fp.write('*' * 60 + '\n【%d】\n  Title: ' % self.total_articles + title_buf[j] + '\n  Link: ' + link_buf[j] + '\n  Img: ' + img_buf[j] + '\r\n\r\n')
+                        fp.write('*' * 60 + '\n【%d】\n  Title: ' % self.total_articles + self.title_buf[_buf_index+j] + '\n  Link: ' + self.link_buf[_buf_index+j] + '\n  Img: ' + img_buf[_buf_index+j] + '\r\n\r\n')
+                        # fp.write('【%d】 ' % self.total_articles + '\n' + link_buf[j] + '\r\n')
                         fp.close()
-                    self.Label_Debug(">> 第%d条写入完成：%s" % (self.total_articles, title_buf[j]))
-                    print(">> 第%d条写入完成：%s" % (self.total_articles, title_buf[j]))
+                    self.Label_Debug(">> 第%d条写入完成：%s" % (self.total_articles, self.title_buf[_buf_index+j]))
+                    print(">> 第%d条写入完成：%s" % (self.total_articles, self.title_buf[_buf_index+j]))
                     self.conf.set("resume", "total_articles", str(self.total_articles))  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     self.conf.write(open(self.cfgpath, "r+", encoding="utf-8"))
                 except Exception as e:
                     print(">> 本页抓取结束 - ", e)
+                    _buf_index += j
+                    print(_buf_index, len(self.title_buf))
+                    print(self.title_buf)
                     break
+
             self.Label_Debug(">> 一页抓取结束")
             print(">> 一页抓取结束")
             # self.get_content(title_buf, link_buf)
             # title_buf.clear()  # 清除缓存
             # link_buf.clear()  # 清除缓存
             if self.isresume == 1:
-                self.linkbuf_cnt = len(link_buf) + self.json_read_len
+                self.linkbuf_cnt = len(self.link_buf) + self.json_read_len
             else:
-                self.linkbuf_cnt = len(link_buf)
+                self.linkbuf_cnt = len(self.link_buf)
             self.conf.set("resume", "linkbuf_cnt", str(self.linkbuf_cnt))  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             self.conf.write(open(self.cfgpath, "r+", encoding="utf-8"))
             self.conf.set("resume", "pagenum", str(i))  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -546,7 +554,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
 
 
     def download_content(self):
-        global link_buf, title_buf
+        # global link_buf, title_buf
         # self.pri_index = 0
         while 1:
             try:
@@ -556,7 +564,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                         # print("download_cnt:", self.download_cnt, "; json_read:", len(self.json_read), "; linkbuf_cnt:", self.linkbuf_cnt)
                         self.get_content(self.json_read[self.download_cnt]["Title"], self.json_read[self.download_cnt]["Link"])
                     else:
-                        self.get_content(title_buf[self.download_cnt], link_buf[self.download_cnt])
+                        self.get_content(self.title_buf[self.download_cnt], self.link_buf[self.download_cnt])
                     self.download_cnt += 1
                     self.conf.set("resume", "download_cnt", str(self.download_cnt))  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     self.conf.write(open(self.cfgpath, "r+", encoding="utf-8"))
@@ -701,5 +709,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
