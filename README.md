@@ -34,5 +34,8 @@ https://www.lanzous.com/b824519/
 建议主程序放到./Py文件夹里运行。若运行仍报错，可：  
 1. 可以把这个exe文件拷贝到qt的安装目录下的bin目录下运行即可；  
 2. 把bin目录下的Qt5Core.dll, Qt5Gui.dll, Qt5Widgets.dll以及C:\Qt\Qt5.8.0\5.8\msvc2015\plugins\platforms拷贝到exe同级目录。platforms文件夹下有qminimal.dll, qoffscreen.dll, qwindows.dll.  再次运行exe或重新用pyinstaller生成exe。
-
+.    
+.    
+.  
+欢迎关注微信公众号：xfxuezhang
 
