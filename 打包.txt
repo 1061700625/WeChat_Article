@@ -1,0 +1,3 @@
+conda activate py39
+pyinstaller -F -w --key 5201314sxf -i icon.ico main.py
+
