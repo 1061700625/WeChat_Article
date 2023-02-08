@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import WeChat
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import os
 import re
 from time import sleep, localtime, time, strftime
-
+import undetected_chromedriver as uc
 from PyQt5.QtWidgets import QApplication
 from bs4 import BeautifulSoup
 import requests
@@ -22,6 +22,8 @@ import ctypes
 import random
 from goto import with_goto
 import configparser
+import pyautogui
+import pdfkit
 
 '''
 conf.ini
@@ -44,6 +46,9 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             'Host': 'mp.weixin.qq.com',
             'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:65.0) Gecko/20100101 Firefox/65.0',
         }
+        self.browser_path = r'Chrome/BitBrowser.exe'
+        self.driver_path = r'Chrome/chromedriver.exe'
+
         self.initpath = os.getcwd()
         self.rootpath = os.getcwd() + r"/spider/"  # 全局变量，存放路径
         self.time_gap = 5       # 全局变量，每页爬取等待时间
@@ -312,22 +317,27 @@ class MyMainWindow(WeChat.Ui_MainWindow):
 
         self.Label_Debug("正在打开浏览器,请稍等")
         print("正在打开浏览器,请稍等")
-        browser = webdriver.Firefox()
+        # browser = webdriver.Firefox()
         # browser = webdriver.Chrome()
+        browser = uc.Chrome(driver_executable_path=self.driver_path,
+                           browser_executable_path=self.browser_path,
+                           suppress_welcome=False)
+
         browser.maximize_window()
 
         browser.get(r'https://mp.weixin.qq.com')
         browser.implicitly_wait(60)
-        account = browser.find_element_by_name("account")
-        password = browser.find_element_by_name("password")
-        if (username != "" and pwd != ""):
-            account.click()
-            account.send_keys(username)
-            password.click()
-            password.send_keys(pwd)
-            browser.find_element_by_xpath(r'//*[@id="header"]/div[2]/div/div/form/div[4]/a').click()
-        else:
-            self.Label_Debug("* 请在10分钟内手动完成登录 *")
+        # account = browser.find_element(by=By.NAME, value="account")
+        # password = browser.find_element(by=By.NAME, value="password")
+        # if (username != "" and pwd != ""):
+        #     account.click()
+        #     account.send_keys(username)
+        #     password.click()
+        #     password.send_keys(pwd)
+        #     browser.find_element(by=By.XPATH, value=r'//*[@id="header"]/div[2]/div/div/form/div[4]/a').click()
+        # else:
+        #     self.Label_Debug("* 请在10分钟内手动完成登录 *")
+        pyautogui.alert(title='请手动完成登录', text='完成登录后，点击确认!', button='确认')
         WebDriverWait(browser, 60 * 10, 0.5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, r'.weui-desktop-account__nickname'))
         )
@@ -433,11 +443,11 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             print(e)
             self.Label_Debug("!! 失败信息："+html_json['base_resp']['err_msg'])
             if 'freq control' in html_json['base_resp']['err_msg']:
-                if self.LineEdit_user_2.text() != '' and self.LineEdit_pwd_2.text() != '':
+                if self.lineEdit_user_2.text() != '' and self.lineEdit_pwd_2.text() != '':
                     self.freq_control = 1
                     self.Label_Debug("将使用备胎公众号")
-                    username = self.LineEdit_user_2.text()  # 备选公众号的账号
-                    pwd = self.LineEdit_pwd_2.text()  # 备选公众号的密码
+                    username = self.lineEdit_user_2.text()  # 备选公众号的账号
+                    pwd = self.lineEdit_pwd_2.text()  # 备选公众号的密码
                     [token, cookies] = self.Login(username, pwd)
                     self.Add_Cookies(cookies)
                     self.freq_control = 0
@@ -598,19 +608,18 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                 os.makedirs(filepath)
             os.chdir(filepath)  # 切换至文件夹
 
+            download_url = link_buf[index] if self.keyword_search_mode==1 else link_buf
             while True:
                 try:
-                    if self.keyword_search_mode == 1:
-                        html = self.sess.get(link_buf[index], headers=self.headers, timeout=(30, 60))
-                    else:
-                        html = self.sess.get(link_buf, headers=self.headers, timeout=(30, 60))
+                    html = self.sess.get(download_url, headers=self.headers, timeout=(30, 60))
                     break
                 except Exception as e:
                     print("连接出错，稍等2s", e)
                     self.Label_Debug("连接出错，稍等2s" + str(e))
                     sleep(2)
                     continue
-
+            
+            pdfkit.from_file(html.text, each_title+'.pdf')
             soup = BeautifulSoup(html.text, 'lxml')
             try:
                 article = soup.find(class_="rich_media_content").find_all("p")  # 查找文章内容位置
@@ -673,7 +682,10 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                 f.write(str(soup))
                 f.close()
                 self.Label_Debug(">> 保存html - 完毕!")
+                # pdfkit.from_file('test.html','out1.pdf')
                 print(">> 保存html - 完毕!")
+            
+
             if self.keyword_search_mode == 1:
                 self.Label_Debug(">> 休息 %d s" % self.time_gap)
                 print(">> 休息 %d s" % self.time_gap)
@@ -709,4 +721,21 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
