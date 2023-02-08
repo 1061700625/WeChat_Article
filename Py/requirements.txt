@@ -1,6 +1,0 @@
-PyQt5
-requests
-bs4
-selenium
-goto-statement
-configparser
