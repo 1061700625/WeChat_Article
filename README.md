@@ -1,6 +1,8 @@
 # WeChat_Article    
 爬取微信公众号文章    
 
+> Bilibili视频演示：https://www.bilibili.com/video/BV1vN411D7Y3/
+
 **注意，除非你要断点续传，否则删除目录下conf.ini和url.json再启动！！！！**
 
 ![image](https://user-images.githubusercontent.com/31002981/217465357-d0737b23-55ec-47d3-b12c-ee8973a04291.png)
