@@ -23,7 +23,7 @@ import random
 from goto import with_goto
 import configparser
 import pyautogui
-import pdfkit
+# import pdfkit
 
 '''
 conf.ini
@@ -618,8 +618,10 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                     self.Label_Debug("连接出错，稍等2s" + str(e))
                     sleep(2)
                     continue
-            
-            pdfkit.from_file(html.text, each_title+'.pdf')
+            # try:
+            #     pdfkit.from_file(html.text, each_title + '.pdf')
+            # except Exception as e:
+            #     pass
             soup = BeautifulSoup(html.text, 'lxml')
             try:
                 article = soup.find(class_="rich_media_content").find_all("p")  # 查找文章内容位置
