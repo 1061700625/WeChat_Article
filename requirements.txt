@@ -4,3 +4,6 @@ bs4
 selenium
 goto-statement
 configparser
+undetected_chromedriver
+lxml
+pyautogui
