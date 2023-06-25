@@ -43,8 +43,23 @@
 **************************************************************************************************** 
 
 ## 使用说明：
+创建虚拟环境
+```bash
+conda create -n wechat python=3.9 -y
+```
+
+进入虚拟环境
+```bash
+conda activate wechat
+```
+
+安装三方库
 ```bash
 pip install -r requirements.txt
+```
+
+运行脚本
+```bash
 python main.py
 ```
 
