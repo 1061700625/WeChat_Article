@@ -63,6 +63,12 @@ pip install -r requirements.txt
 python main.py
 ```
 
+打包exe(生成在dist下)
+```bash
+pyinstaller -F -w -i icon.ico main.py
+```
+
+
 ## 其他说明：
 - 爬取间隔太快，容易遇到“**访问频繁**”或“**freq_control**”，这时候可以删除**cookie.json**，再重新运行软件，**换个号**继续运行；
 - Qt打包完实在是太大了，有大佬会转成Tkinter吗？
