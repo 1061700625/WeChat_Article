@@ -36,6 +36,7 @@ conf.ini
 # 设置 递归调用深度 为 一百万
 sys.setrecursionlimit(1000000)
 
+# https://github.com/wnma3mz/wechat_articles_spider/blob/master/docs/使用的微信公众号接口.md
 # title_buf = []
 # link_buf = []
 pro_continue = 0
@@ -71,6 +72,9 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         self.url_json_init()
         self.title_buf = []
         self.link_buf = []
+        self.wechat_uin = None
+        self.wechat_key = None
+        
 
     def vari_init(self):
         # global title_buf, link_buf
@@ -139,6 +143,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             self.Label_Debug("终止成功!")
             print("终止成功!")
         except Exception as e:
+            self.Label_Debug("终止失败!")
             print(e)
 
     def Start_Run_2(self):
@@ -161,6 +166,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             self.Label_Debug("终止成功!")
             print("终止成功!")
         except Exception as e:
+            self.Label_Debug("终止失败!")
             print(e)
 
     def Change_IP(self):
@@ -212,21 +218,25 @@ class MyMainWindow(WeChat.Ui_MainWindow):
 
     def Process(self):
         try:
-            username = self.LineEdit_user.text()  # 自己公众号的账号
-            pwd = self.LineEdit_pwd.text()  # 自己公众号的密码
-            query_name = self.LineEdit_target.text()                 # 公众号的英文名称
-            self.time_gap = self.LineEdit_timegap.text() or 10       # 每页爬取等待时间
+            username = self.LineEdit_user.text()                                                    # 自己公众号的账号
+            pwd = self.LineEdit_pwd.text()                                                          # 自己公众号的密码
+            query_name = self.LineEdit_target.text()                                                # 公众号的英文名称
+            self.time_gap = self.LineEdit_timegap.text() or 10                                      # 每页爬取等待时间
             self.time_gap = int(self.time_gap)
-            self.timeStart = self.lineEdit_timeStart.text() or 1999  # 起始时间
+            self.timeStart = self.lineEdit_timeStart.text() or 1999                                 # 起始时间
             self.timeStart = int(self.timeStart)
-            self.timeEnd = self.lineEdit_timeEnd.text() or self.year_now+1      # 结束时间
+            self.timeEnd = self.lineEdit_timeEnd.text() or self.year_now+1                          # 结束时间
             self.timeEnd = int(self.timeEnd)
-            self.keyWord = self.lineEdit_keyword.text()              # 关键词
-
+            self.keyWord = self.lineEdit_keyword.text()                                             # 关键词
+            uin_key = self.LineEdit_wechat.text().strip()                                           # 微信 uin,key
+            if uin_key:
+                self.wechat_uin = re.search(r'uin=(.*?)&', uin_key).group(1)
+                self.wechat_key = re.search(r'key=(.*?)&', uin_key).group(1)
+                        
             if self.checkBox.isChecked() is True and pwd != "":
-                dict = {'target': query_name, 'user': username, 'pwd': pwd, 'timegap': self.time_gap}
+                dicts = {'target': query_name, 'user': username, 'pwd': pwd, 'timegap': self.time_gap}
                 with open(os.getcwd()+r'/login.json', 'w+') as p:
-                    json.dump(dict, p)
+                    json.dump(dicts, p)
                     p.close()
 
             [token, cookies] = self.Login(username, pwd)
@@ -442,16 +452,17 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         except Exception as e:
             print(e)
             self.Label_Debug("!! 失败信息："+html_json['base_resp']['err_msg'])
-            if 'freq control' in html_json['base_resp']['err_msg']:
-                if self.lineEdit_user_2.text() != '' and self.lineEdit_pwd_2.text() != '':
-                    self.freq_control = 1
-                    self.Label_Debug("将使用备胎公众号")
-                    username = self.lineEdit_user_2.text()  # 备选公众号的账号
-                    pwd = self.lineEdit_pwd_2.text()  # 备选公众号的密码
-                    [token, cookies] = self.Login(username, pwd)
-                    self.Add_Cookies(cookies)
-                    self.freq_control = 0
-                    self.Get_Articles(token, fakeid)
+            # if 'freq control' in html_json['base_resp']['err_msg']:
+            #     可能有点问题
+            #     if self.lineEdit_user_2.text() != '' and self.lineEdit_pwd_2.text() != '':
+            #         self.freq_control = 1
+            #         self.Label_Debug("将使用备胎公众号")
+            #         username = self.lineEdit_user_2.text()  # 备选公众号的账号
+            #         pwd = self.lineEdit_pwd_2.text()  # 备选公众号的密码
+            #         [token, cookies] = self.Login(username, pwd)
+            #         self.Add_Cookies(cookies)
+            #         self.freq_control = 0
+            #         self.Get_Articles(token, fakeid)
             return
         table_index = 0
 
@@ -563,6 +574,137 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         self.download_end = 1
 
 
+    def Get_comment_id(self, article_url):
+        '''获取文章id'''
+        try:
+            resp = requests.get(article_url).text
+            pattern = re.compile(r'comment_id\s*=\s*"(?P<id>\d+)"')
+            return pattern.search(resp)['id']
+        except:
+            return None
+
+    def Get_Comments(self, article_url, uin, key, offset=0):
+        '''获取文章的评论'''
+        # TODO: 微信uin和key失效后，弹窗提示更新，更新后继续运行
+        comments = []
+        if not uin or not key:
+            return comments
+        url = 'https://mp.weixin.qq.com/mp/appmsg_comment?'
+        biz = re.search('__biz=(.*?)&', article_url).group(1)
+        comment_id = self.Get_comment_id(article_url)
+        
+        datas = {
+            'action': 'getcomment',
+            # 与文章绑定
+            'comment_id': str(comment_id),   # !import
+            # 与微信绑定
+            'uin': str(uin),                 # !import
+            # 与微信绑定，约20分钟失效
+            'key': str(key),                 # !import
+            '__biz': str(biz),               # !import
+            'offset': str(offset),
+            'limit': '100',
+            'f': 'json',
+            # 'scene': '0',
+            # 'appmsgid': appmsgid,
+            # 'idx': idx,
+            # 'send_time': '',
+            # 'sessionid': sessionid,
+            # 'enterid': enterid,
+            # 'fasttmplajax': '1',
+            # 'pass_ticket': pass_ticket,
+            # 'wxtoken': '',
+            # 'devicetype': 'Windows%2B11%2Bx64',
+            # 'clientversion': '63090551',
+            # 'appmsg_token': '',
+            # 'x5': '0',            
+        }
+        params = ''
+        for key,value in datas.items():
+            params += key + '=' + value + '&'
+        url += params
+        try:
+            resp = requests.get(url=url).json()
+            if resp['elected_comment_total_cnt']:
+                for item in resp['elected_comment']:
+                    comments.append(item['nick_name'] + ": " + item['content'])
+        except:
+            pass
+        return comments
+
+
+    # 获取阅读数和点赞数(未测试)
+    def Get_ReadsLikes(self, link):
+        # 获得mid,_biz,idx,sn 这几个在link中的信息
+        mid = link.split("&")[1].split("=")[1]
+        idx = link.split("&")[2].split("=")[1]
+        sn = link.split("&")[3].split("=")[1]
+        _biz = link.split("&")[0].split("_biz=")[1]
+
+        # fillder 中取得一些不变得信息
+        pass_ticket = "这里也是输入你自己的数据"#从fiddler中获取 # ---------------------------------这里每次需要修改---------------------------------
+        appmsg_token = "这里也是输入你自己的数据"#从fiddler中获取 # ---------------------------------这里每次需要修改---------------------------------
+
+        # 目标url
+        url = "http://mp.weixin.qq.com/mp/getappmsgext"#获取详情页的网址
+        # 添加Cookie避免登陆操作，这里的"User-Agent"最好为手机浏览器的标识
+        #phoneCookie = "自己的"
+        phoneCookie = "这里也是输入你自己的数据（这虽然叫phoneCookie但其实就是fillder抓包得到的cookie）"# ---------------------------------这里每次需要修改---------------------------------
+        headers = {
+            "Cookie": phoneCookie,
+            "User-Agent": "这里也是输入你自己的数据" # ---------------------------------这里需要修改---------------------------------
+        }
+        # 添加data，`req_id`、`pass_ticket`分别对应文章的信息，从fiddler复制即可。
+        data = {
+            "is_only_read": "1",
+            "is_temp_url": "0",
+            "appmsg_type": "9",
+            'reward_uin_count': '-1'
+        }
+        """
+        添加请求参数
+        __biz对应公众号的信息，唯一
+        mid、sn、idx分别对应每篇文章的url的信息，需要从url中进行提取
+        key、appmsg_token从fiddler上复制即可
+        pass_ticket对应的文章的信息，也可以直接从fiddler复制
+        """
+        params = {
+            "__biz": _biz,
+            "mid": mid,
+            "sn": sn,
+            "idx": idx,
+            "key": "这里也是输入你自己的数据",# ---------------------------------这里每次需要修改---------------------------------
+            "pass_ticket": pass_ticket,
+            "appmsg_token": appmsg_token,
+            "uin": "这里也是输入你自己的数据",
+            "wxtoken": "777",
+        }
+
+        # 使用post方法进行提交
+        requests.packages.urllib3.disable_warnings()
+        content = requests.post(url, headers=headers, data=data, params=params).json()
+        # 提取其中的阅读数和点赞数
+        # print(content["appmsgstat"]["read_num"], content["appmsgstat"]["like_num"])
+        try:
+            readNum = content["appmsgstat"]["read_num"]
+            print("阅读数:"+str(readNum))
+        except:
+            readNum = 0
+        try:
+            likeNum = content["appmsgstat"]["like_num"]
+            print("喜爱数:"+str(likeNum))
+        except:
+            likeNum = 0
+        try:
+            old_like_num = content["appmsgstat"]["old_like_num"]
+            print("在读数:"+str(old_like_num))
+        except:
+            old_like_num = 0
+        # 歇3s，防止被封
+        time.sleep(3)
+        return readNum, likeNum,old_like_num
+
+
     def download_content(self):
         # global link_buf, title_buf
         # self.pri_index = 0
@@ -574,7 +716,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                         # print("download_cnt:", self.download_cnt, "; json_read:", len(self.json_read), "; linkbuf_cnt:", self.linkbuf_cnt)
                         self.get_content(self.json_read[self.download_cnt]["Title"], self.json_read[self.download_cnt]["Link"])
                     else:
-                        self.get_content(self.title_buf[self.download_cnt], self.link_buf[self.download_cnt])
+                        self.get_content(self.title_buf[self.download_cnt], self.link_buf[self.download_cnt])                    
                     self.download_cnt += 1
                     self.conf.set("resume", "download_cnt", str(self.download_cnt))  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     self.conf.write(open(self.cfgpath, "r+", encoding="utf-8"))
@@ -608,7 +750,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                 os.makedirs(filepath)
             os.chdir(filepath)  # 切换至文件夹
 
-            download_url = link_buf[index] if self.keyword_search_mode==1 else link_buf
+            download_url = link_buf[index] if self.keyword_search_mode==1 else link_buf                
             while True:
                 try:
                     html = self.sess.get(download_url, headers=self.headers, timeout=(30, 60))
@@ -687,7 +829,13 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                 # pdfkit.from_file('test.html','out1.pdf')
                 print(">> 保存html - 完毕!")
             
-
+            # 下载文章评论
+            comments = self.Get_Comments(download_url, self.wechat_uin, self.wechat_key)
+            with open(each_title + r'_comments.txt', 'a+', encoding='utf-8') as fp:
+                fp.write('\n'.join(comments))  # 写入本地文件
+                fp.close()
+                self.Label_Debug(">> 保存评论 - 完毕!")
+        
             if self.keyword_search_mode == 1:
                 self.Label_Debug(">> 休息 %d s" % self.time_gap)
                 print(">> 休息 %d s" % self.time_gap)
