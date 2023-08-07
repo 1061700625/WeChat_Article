@@ -1,6 +1,8 @@
 ﻿# -*- coding: utf-8 -*-
 import WeChat
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt
 import sys
 import os
 import re
@@ -15,6 +17,9 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from math import ceil
 import threading
 import inspect
@@ -114,18 +119,33 @@ class MyMainWindow(WeChat.Ui_MainWindow):
     def setupUi(self, MainWindow):
         super(MyMainWindow, self).setupUi(MainWindow)
         try:
-            with open(os.getcwd()+r'/login.json', 'r', encoding='utf-8') as p:
-                login_dict = json.load(p)
-                print("登陆文件读取成功")
-                self.Label_Debug("登陆文件读取成功")
-                self.LineEdit_target.setText(login_dict['target'])  # 公众号的英文名称
-                self.LineEdit_user.setText(login_dict['user'])  # 自己公众号的账号
-                self.LineEdit_pwd.setText(login_dict['pwd'])  # 自己公众号的密码
-                self.LineEdit_timegap.setText(str(login_dict['timegap']))  # 每页爬取等待时间"
-                self.lineEdit_timeEnd.setText(str(self.year_now+1))  # 结束时间为当前年
-                self.lineEdit_timeStart.setText("1999")  # 开始时间为1999
-                QApplication.processEvents()  # 刷新文本操作
-                p.close()
+            if os.path.exists(os.getcwd()+r'/login.json'):
+                with open(os.getcwd()+r'/login.json', 'r', encoding='utf-8') as p:
+                    login_dict = json.load(p)
+                    print("登陆文件读取成功")
+                    self.Label_Debug("登陆文件读取成功")
+                    self.LineEdit_target.setText(login_dict['target'])  # 公众号的英文名称
+                    self.LineEdit_user.setText(login_dict['user'])  # 自己公众号的账号
+                    self.LineEdit_pwd.setText(login_dict['pwd'])  # 自己公众号的密码
+                    self.LineEdit_timegap.setText(str(login_dict['timegap']))  # 每页爬取等待时间"
+                    self.lineEdit_timeEnd.setText(str(self.year_now+1))  # 结束时间为当前年
+                    self.lineEdit_timeStart.setText("1999")  # 开始时间为1999
+                    QApplication.processEvents()  # 刷新文本操作
+            
+            image_url = "http://xfxuezhang.cn/web/share/donate/yf.png"
+            response = requests.get(image_url)
+            if response.status_code == 200:
+                self.label_yf.setAlignment(Qt.AlignCenter)
+                pixmap = QPixmap()
+                pixmap.loadFromData(response.content)
+                # 缩放图片以适应标签的大小
+                scaled_pixmap = pixmap.scaled(self.label_yf.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                self.label_yf.setPixmap(scaled_pixmap)
+                print('image download ok')
+            else:
+                self.label_yf.setText("image url not found.")
+        
+
         except Exception as e:
             print(e)
 
@@ -228,10 +248,10 @@ class MyMainWindow(WeChat.Ui_MainWindow):
             self.timeEnd = self.lineEdit_timeEnd.text() or self.year_now+1                          # 结束时间
             self.timeEnd = int(self.timeEnd)
             self.keyWord = self.lineEdit_keyword.text()                                             # 关键词
-            uin_key = self.LineEdit_wechat.text().strip()                                           # 微信 uin,key
-            if uin_key:
-                self.wechat_uin = re.search(r'uin=(.*?)&', uin_key).group(1)
-                self.wechat_key = re.search(r'key=(.*?)&', uin_key).group(1)
+            # uin_key = self.LineEdit_wechat.text().strip()                                           # 微信 uin,key
+            # if uin_key:
+            #     self.wechat_uin = re.search(r'uin=(.*?)&', uin_key).group(1)
+            #     self.wechat_key = re.search(r'key=(.*?)&', uin_key).group(1)
                         
             if self.checkBox.isChecked() is True and pwd != "":
                 dicts = {'target': query_name, 'user': username, 'pwd': pwd, 'timegap': self.time_gap}
@@ -327,11 +347,21 @@ class MyMainWindow(WeChat.Ui_MainWindow):
 
         self.Label_Debug("正在打开浏览器,请稍等")
         print("正在打开浏览器,请稍等")
-        # browser = webdriver.Firefox()
-        # browser = webdriver.Chrome()
-        browser = uc.Chrome(driver_executable_path=self.driver_path,
-                           browser_executable_path=self.browser_path,
-                           suppress_welcome=False)
+        options = Options()
+        # options.add_argument("--headless")
+        options.add_argument("--incognito")
+        options.add_argument("--disable-blink-features")
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("--no-default-browser-check")
+        options.add_argument("--allow-running-insecure-content")
+        options.add_argument("--ignore-certificate-errors")
+        options.add_argument("--disable-single-click-autofill")
+        options.add_argument("--disable-autofill-keyboard-accessory-view[8]")
+        options.add_argument("--disable-full-form-autofill-ios")
+        browser = webdriver.Chrome(options=options, service=Service(ChromeDriverManager().install()))
+        # browser = uc.Chrome(driver_executable_path=self.driver_path,
+        #                    browser_executable_path=self.browser_path,
+        #                    suppress_welcome=False)
 
         browser.maximize_window()
 

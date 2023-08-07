@@ -8,3 +8,4 @@ undetected_chromedriver
 lxml
 pyautogui
 pyinstaller
+webdriver_manager
