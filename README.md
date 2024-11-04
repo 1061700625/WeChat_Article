@@ -9,10 +9,12 @@
 
 
 ## 使用方法：     
-1、下载并解压[**Chrome.rar**](https://sxf1024.lanzouo.com/iJ2Rp0mwy50j)；    
-2、运行**main.exe**；    
-3、填入信息，点击“**启动**”即可。    
-4、如果想修改UI，可以安装这个：[Qt Designer](https://build-system.fman.io/qt-designer-download)    
+1、下载并解压[**Chrome.rar**](https://sxf1024.lanzouo.com/iJ2Rp0mwy50j)；  
+2、下载并解压[default.zip](https://github.com/1061700625/WeChat_Article/releases)；  
+3、将解压的Chrome放到解压的default里；    
+4、进入default目录，运行**main.exe**；    
+5、填入信息，点击“**启动**”即可。    
+6、如果想修改UI，可以安装这个：[Qt Designer](https://build-system.fman.io/qt-designer-download)    
 ****************************************************************************************************    
 
 ## 背景知识:     
