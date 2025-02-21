@@ -51,7 +51,14 @@ class PlaceholderEntry(tk.Entry):
     def on_focus_out(self, event):
         if not self.get():
             self.put_placeholder()
-
+    
+    def get(self):
+        content = super().get()
+        if content == self.placeholder:
+            return ""
+        else:
+            return content.strip()
+        
 class Ui_MainWindow:
     def setupUi(self, root):
         root.title("微信公众号文章 by 小锋学长")
@@ -146,7 +153,8 @@ class Ui_MainWindow:
 
         self.pushButton_start = tk.Button(button_frame, text="启动 (*^▽^*)", command=self.Start_Run, bg="#4caf50", fg="white", font=self.label_font, relief="flat", padx=10, pady=5)
         self.pushButton_start.grid(row=0, column=0, pady=5, sticky='ew')
-        self.checkBox = tk.Checkbutton(button_frame, text="记住密码", font=self.label_font, bg="#f0f0f0")
+        self.CheckVar = tk.IntVar()  # 创建变量
+        self.checkBox = tk.Checkbutton(button_frame, text="记住密码", font=self.label_font, bg="#f0f0f0", variable=self.CheckVar)
         self.checkBox.grid(row=1, column=0, pady=5, sticky='w')
         self.pushButton_stop = tk.Button(button_frame, text="终止 ￣へ￣", command=self.Stop_Run, bg="#f44336", fg="white", font=self.label_font, relief="flat", padx=10, pady=5)
         self.pushButton_stop.grid(row=2, column=0, pady=5, sticky='ew')
@@ -192,7 +200,7 @@ class Ui_MainWindow:
         # 顶部标题区域
         top_frame = tk.Frame(self.tab2, bg="#f0f0f0")
         top_frame.grid(row=0, column=0, columnspan=2, sticky='nsew', padx=5, pady=5)
-        self.label_head_2 = tk.Label(top_frame, text="****************************************************************************************************\n* Demo 说明: 现在“公众号搜文章”页填完整信息，再在本页填入关键词，点击“启动”即可\n                         Copyright © SXF  本软件禁止一切形式的商业活动\n****************************************************************************************************", 
+        self.label_head_2 = tk.Label(top_frame, text="****************************************************************************************************\n* Demo 说明: \n先在“公众号搜文章”页填完整信息，再在本页填入关键词，点击“启动”即可\n                         Copyright © SXF  本软件禁止一切形式的商业活动\n****************************************************************************************************", 
                                      font=self.header_font, justify="left", bg="#e0f7fa", fg="#006064", padx=10, pady=10, relief="flat", wraplength=780)
         self.label_head_2.grid(row=0, column=0, sticky='nsew')
 
