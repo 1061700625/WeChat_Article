@@ -86,6 +86,13 @@ pyinstaller -F -w -i icon.ico main.py
 
 欢迎关注微信公众号：xfxuezhang
 
+# 相关项目
+> 感谢大佬们的贡献 ♪(･ω･)ﾉ
+- [web版](https://github.com/wechat-article/wechat-article-exporter)
+- [QT6版](https://github.com/wooodypan/WeChat_Article)
+
+
+
 ---
 ## 打赏    
 如果这个项目帮助到了你，欢迎请我喝杯阔落👏🏻    
