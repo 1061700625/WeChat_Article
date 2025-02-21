@@ -98,8 +98,8 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         self.download_end = 0
         self.title_buf.clear()  # 清除缓存
         self.link_buf.clear()  # 清除缓存
-        # self.progressBar.setMaximum(100)
-        # self.progressBar.setValue(0)
+        self.progressBar.setMaximum(100)
+        self.progressBar.setValue(0)
 
     def Label_Debug(self, string):
         if self.label_debug_cnt == 12:
@@ -379,7 +379,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         #     self.Label_Debug("* 请在10分钟内手动完成登录 *")
         pyautogui.alert(title='请手动完成登录', text='完成登录后，点击确认!', button='确认')
         WebDriverWait(browser, 60 * 10, 0.5).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, r'.weui-desktop-account__nickname'))
+            EC.presence_of_element_located((By.CSS_SELECTOR, r'.weui-desktop-account__info'))
         )
         self.Label_Debug("登陆成功")
         token = re.search(r'token=(.*)', browser.current_url).group(1)
@@ -477,7 +477,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
         html_json = self.sess.get(url, headers=self.headers, timeout=(30, 60)).json()
         try:
             Total_Page = ceil(int(html_json['app_msg_cnt']) / 5)
-            # self.progressBar.setMaximum(Total_Page)
+            self.progressBar.setMaximum(Total_Page)
             QApplication.processEvents()  # 刷新文本操作
         except Exception as e:
             print(e)
@@ -569,6 +569,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
                     self.total_articles += 1
                     dict_in = {"Title": self.title_buf[_buf_index+j], "Link": self.link_buf[_buf_index+j], "Img": img_buf[_buf_index+j]}
                     self.url_json_once(dict_in)
+                    os.makedirs(self.rootpath, exist_ok=True)
                     with open(self.rootpath + "/spider.txt", 'a+', encoding="utf-8") as fp:
                         fp.write('*' * 60 + '\n【%d】\n  Title: ' % self.total_articles + self.title_buf[_buf_index+j] + '\n  Link: ' + self.link_buf[_buf_index+j] + '\n  Img: ' + img_buf[_buf_index+j] + '\r\n\r\n')
                         # fp.write('【%d】 ' % self.total_articles + '\n' + link_buf[j] + '\r\n')
