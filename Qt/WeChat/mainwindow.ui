@@ -29,7 +29,7 @@
    <bool>false</bool>
   </property>
   <property name="windowTitle">
-   <string>微信公众号文章</string>
+   <string>微信公众号文章 by 小锋学长</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -40,13 +40,13 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
         <string>  公众号搜文章  </string>
        </attribute>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -196,7 +196,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -205,7 +205,7 @@
           <height>237</height>
          </rect>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,0,0">
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0">
          <property name="sizeConstraint">
           <enum>QLayout::SetDefaultConstraint</enum>
          </property>
@@ -307,13 +307,33 @@
             </widget>
            </item>
            <item row="4" column="0">
+            <widget class="QLabel" name="wechatLabel">
+             <property name="text">
+              <string>微信uin和key</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLineEdit" name="LineEdit_wechat">
+             <property name="minimumSize">
+              <size>
+               <width>200</width>
+               <height>25</height>
+              </size>
+             </property>
+             <property name="placeholderText">
+              <string>URL全复制进来;下载评论和阅读数时需要，通过Fiddler抓包微信uin和key(约20分钟失效一次)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
             <widget class="QLabel" name="Label_time">
              <property name="text">
               <string>时间范围(年)</string>
              </property>
             </widget>
            </item>
-           <item row="4" column="1">
+           <item row="5" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,0,0,0,0">
              <property name="spacing">
               <number>6</number>
@@ -405,6 +425,20 @@
               </widget>
              </item>
             </layout>
+           </item>
+           <item row="7" column="0" colspan="2">
+            <widget class="QProgressBar" name="progressBar">
+             <property name="value">
+              <number>0</number>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_total_Page">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -522,10 +556,9 @@
          <string>****************************************************************************************************
 * 程序原理:
 &gt;&gt; 通过selenium登录获取token和cookie，再自动爬取和下载
-* 使用前提： *
-&gt;&gt; 电脑已装Firefox、Chrome、Opera、Edge等浏览器(默认Firefox驱动)
-&gt;&gt; 下载selenium驱动放入python安装目录，将目录添加至环境变量(https://www.seleniumhq.org/download/)
+* 使用前提： 
 &gt;&gt; 申请一个微信公众号(https://mp.weixin.qq.com)
+开源链接：https://github.com/1061700625/WeChat_Article
                          Copyright © SXF  本软件禁止一切形式的商业活动
 ****************************************************************************************************</string>
         </property>
