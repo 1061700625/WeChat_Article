@@ -98,3 +98,7 @@ pyinstaller -F -w -i icon.ico main.py
 如果这个项目帮助到了你，欢迎请我喝杯阔落👏🏻    
 ![yf](yf.png)
 
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=1061700625/WeChat_Article&type=Date)](https://www.star-history.com/#1061700625/WeChat_Article&Date)
