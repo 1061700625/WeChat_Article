@@ -385,7 +385,7 @@ class MyMainWindow(WeChat.Ui_MainWindow):
 
         pyautogui.alert(title="请手动完成登录", text="完成登录后，点击确认!", button="确认")  # 弹出提示
         WebDriverWait(browser, 600, 0.5).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".weui-desktop-account__info"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".weui-desktop_name"))
         )  # 等待登录成功，最多10分钟
         self._label_debug("登录成功")
         token = re.search(r"token=([^&]+)", browser.current_url).group(1)  # 从 URL 提取 token
@@ -900,3 +900,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
