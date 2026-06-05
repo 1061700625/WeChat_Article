@@ -104,4 +104,5 @@ pyinstaller -F -w -i icon.ico main.py
 
 ---
 
-[![Powered by DartNode](https://dartnode.com/branding/DN-Open-Source-sm.png)](https://dartnode.com "Powered by DartNode - Free VPS for Open Source")
+[![Powered by DartNode](https://dartnode.com/branding/DN-Open-Source-sm.png)](https://dartnode.com "Powered by DartNode - Free VPS for Open Source") 
+> 这个DN的响应巨巨巨巨巨慢，一个工单拖一周是洒洒水
