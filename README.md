@@ -100,5 +100,5 @@ pyinstaller -F -w -i icon.ico main.py
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=1061700625/WeChat_Article&type=Date)](https://www.star-history.com/#1061700625/WeChat_Article&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=1061700625/WeChat_Article&type=Date)](https://star-history.dera.page/#1061700625/WeChat_Article&Date)
 
